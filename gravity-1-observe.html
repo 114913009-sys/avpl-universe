@@ -1,0 +1,1767 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>重力與軌道・完整展間雛型｜觀測・規律・原因</title>
+<style>
+  :root{
+    --ink:#e6eefb; --ink-dim:#8ea3c4;
+    --panel:rgba(10,16,32,.82); --line:rgba(120,170,255,.22);
+    --field:#8fb8ff; --gold:#ffd27a; --ok:#8ef0b0; --warn:#ff9a7a;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:100%;height:100%;overflow:hidden;background:#05070f;
+    font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;color:var(--ink)}
+  #scene{position:fixed;inset:0;display:block}
+  button{font-family:inherit}
+
+  #intro{position:fixed;inset:0;background:radial-gradient(ellipse at 50% 30%,#0d1428 0%,#05070f 70%);
+    display:flex;align-items:center;justify-content:center;z-index:60;transition:opacity .5s}
+  #intro.hide{opacity:0;pointer-events:none}
+  .intro-card{max-width:560px;width:calc(100% - 44px);border:1px solid var(--line);
+    background:var(--panel);backdrop-filter:blur(8px);padding:32px 36px 26px;border-radius:4px;
+    max-height:92vh;overflow:auto}
+  .eyebrow{font-size:12px;letter-spacing:.35em;color:var(--gold);margin-bottom:12px}
+  .intro-card h1{font-family:"Noto Serif TC","PMingLiU",serif;font-weight:700;font-size:30px;letter-spacing:.06em;margin-bottom:4px}
+  .intro-card h2{font-size:14px;font-weight:400;color:var(--ink-dim);margin-bottom:18px;letter-spacing:.08em}
+  .ctrl-list{border-top:1px solid var(--line);padding-top:14px;margin-bottom:18px}
+  .ctrl-row{display:flex;gap:12px;align-items:baseline;font-size:13.5px;margin-bottom:8px}
+  .key{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--gold);
+    border:1px solid rgba(255,210,122,.4);border-radius:3px;padding:2px 7px;min-width:96px;text-align:center}
+  #startBtn{width:100%;padding:12px;font-size:16px;letter-spacing:.25em;cursor:pointer;
+    background:transparent;color:var(--gold);border:1px solid var(--gold);border-radius:3px;transition:.2s}
+  #startBtn:hover{background:var(--gold);color:#141005}
+  .intro-note{font-size:12px;color:var(--ink-dim);margin-top:12px;line-height:1.7}
+
+  .hud{position:fixed;z-index:20;pointer-events:none}
+  .hud .clickable, .hud button{pointer-events:auto}
+  #zoneTag{top:16px;left:16px;border-left:2px solid var(--gold);padding:4px 12px;background:var(--panel);font-size:12px;letter-spacing:.1em}
+  #zoneTag b{display:block;font-family:"Noto Serif TC",serif;font-size:16px;letter-spacing:.14em;color:var(--gold)}
+  #map{top:78px;left:16px;background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:10px 14px;width:240px}
+  #map h3{font-size:11px;letter-spacing:.3em;color:var(--ink-dim);margin-bottom:8px}
+  .mrow{display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:6px}
+  .mrow .st{width:16px;text-align:center}
+  .mrow .nm{flex:1;color:var(--ink-dim)}
+  .mrow.open .nm{color:var(--ink)}
+  .mrow button{font-size:11px;padding:2px 8px;background:transparent;border:1px solid var(--line);
+    color:var(--field);border-radius:3px;cursor:pointer}
+  .mrow button:disabled{opacity:.3;cursor:default}
+  #unlockAll{font-size:11px;color:var(--ink-dim);background:none;border:none;cursor:pointer;
+    text-decoration:underline;margin-top:4px}
+
+  #toast{bottom:110px;left:50%;transform:translateX(-50%);background:var(--panel);
+    border:1px solid var(--ok);color:var(--ok);border-radius:3px;padding:8px 20px;font-size:14px;
+    letter-spacing:.1em;opacity:0;transition:opacity .35s;max-width:80vw;text-align:center;position:fixed;z-index:20}
+  #toast.show{opacity:1}
+  #prompt{bottom:160px;left:50%;transform:translateX(-50%);background:var(--panel);
+    border:1px solid var(--gold);color:var(--gold);border-radius:3px;padding:7px 18px;font-size:14px;
+    letter-spacing:.1em;display:none;position:fixed;z-index:20}
+
+  .sidePanel{position:fixed;right:16px;top:78px;z-index:22;width:282px;background:var(--panel);
+    border:1px solid var(--line);border-radius:4px;padding:13px 15px;display:none;max-height:calc(100vh - 160px);overflow:auto}
+  .sidePanel h3{font-size:12px;letter-spacing:.25em;color:var(--field);margin-bottom:10px}
+  .sidePanel .row{display:flex;justify-content:space-between;align-items:center;font-size:13px;margin-bottom:8px;gap:8px}
+  .sidePanel .row label{color:var(--ink-dim)}
+  .sidePanel button{background:transparent;border:1px solid var(--line);color:var(--ink);
+    border-radius:3px;padding:4px 10px;font-size:12.5px;cursor:pointer}
+  .sidePanel button.primary{border-color:var(--gold);color:var(--gold)}
+  .sidePanel button.primary:active{background:var(--gold);color:#141005}
+  .sidePanel button.sel{border-color:var(--gold);color:var(--gold);background:rgba(255,210,122,.1)}
+  .sidePanel button:disabled{opacity:.35;cursor:default}
+  .sidePanel input[type=range]{width:120px}
+  .records{max-height:140px;overflow:auto;border-top:1px solid var(--line);margin-top:6px;padding-top:6px;
+    font-size:12px;line-height:1.7;color:var(--ink-dim)}
+  .records b{color:var(--ink)}
+  .budget{height:8px;background:#122036;border-radius:4px;overflow:hidden;margin:4px 0 8px}
+  .budget i{display:block;height:100%;background:linear-gradient(90deg,#ffd27a,#ff9a5c);transition:width .3s}
+  .readout{font-size:13px;color:var(--ink);margin-bottom:6px;line-height:1.7}
+  .expBtns{display:flex;gap:6px;margin-bottom:8px}
+  .expBtns button{flex:1}
+
+  #modalBack{position:fixed;inset:0;background:rgba(4,6,12,.72);z-index:50;display:none;
+    align-items:center;justify-content:center}
+  #modal{max-width:480px;width:calc(100% - 44px);background:var(--panel);backdrop-filter:blur(8px);
+    border:1px solid var(--line);border-radius:5px;padding:26px 28px;max-height:88vh;overflow:auto}
+  #modal h2{font-family:"Noto Serif TC",serif;font-size:20px;letter-spacing:.1em;color:var(--gold);margin-bottom:6px}
+  #modal .sub{font-size:12px;color:var(--ink-dim);margin-bottom:14px;letter-spacing:.06em}
+  #modal p{font-size:14.5px;line-height:1.85;margin-bottom:12px}
+  #modal .opts{display:flex;flex-wrap:wrap;gap:9px;margin:12px 0}
+  #modal .opts button{flex:1 1 40%;padding:10px;background:transparent;border:1px solid var(--field);
+    color:var(--field);border-radius:3px;font-size:14.5px;cursor:pointer;letter-spacing:.05em}
+  #modal .opts button:hover{background:var(--field);color:#0a1020}
+  #modal textarea,#modal input[type=number]{width:100%;background:#0a1224;border:1px solid var(--line);border-radius:3px;
+    color:var(--ink);padding:8px;font-size:14px;font-family:inherit}
+  #modal textarea{resize:vertical;min-height:60px}
+  #modal .foot{display:flex;justify-content:flex-end;gap:10px;margin-top:14px}
+  #modal .foot button{padding:8px 20px;background:transparent;border:1px solid var(--gold);
+    color:var(--gold);border-radius:3px;font-size:14px;cursor:pointer;letter-spacing:.12em}
+  #modal canvas{display:block;margin:8px auto;background:#0a1224;border-radius:4px}
+
+  #aiBtn{position:fixed;bottom:22px;right:20px;z-index:25;cursor:pointer;
+    background:var(--panel);border:1px solid var(--field);color:var(--field);border-radius:3px;
+    padding:11px 16px;font-size:13.5px;letter-spacing:.12em}
+  #aiPanel{position:fixed;bottom:70px;right:20px;z-index:45;width:320px;max-width:calc(100vw - 40px);
+    background:var(--panel);backdrop-filter:blur(8px);border:1px solid var(--field);border-radius:5px;
+    display:none;flex-direction:column;overflow:hidden}
+  #aiPanel header{padding:9px 14px;font-size:12px;letter-spacing:.25em;color:var(--field);
+    border-bottom:1px solid var(--line);display:flex;justify-content:space-between}
+  #aiPanel header button{background:none;border:none;color:var(--ink-dim);cursor:pointer;font-size:14px}
+  #aiMsgs{height:230px;overflow:auto;padding:12px;font-size:13.5px;line-height:1.75}
+  .aim{margin-bottom:10px;max-width:92%}
+  .aim.user{margin-left:auto;text-align:right;color:var(--gold)}
+  .aim.bot{color:var(--ink)}
+  .aim.sys{color:var(--ink-dim);font-size:12px}
+  #aiForm{display:flex;border-top:1px solid var(--line)}
+  #aiInput{flex:1;background:transparent;border:none;color:var(--ink);padding:10px 12px;font-size:14px;font-family:inherit}
+  #aiInput:focus{outline:none}
+  #aiSend{background:none;border:none;color:var(--field);padding:0 14px;cursor:pointer;font-size:14px}
+
+  @media (max-width:680px){
+    #map{width:196px;font-size:12px}
+    .sidePanel{width:236px;top:auto;bottom:110px}
+  }
+</style>
+</head>
+<body>
+<canvas id="scene"></canvas>
+
+<div id="intro">
+  <div class="intro-card">
+    <div class="eyebrow">重力與軌道・完整展間雛型</div>
+    <h1>觀測・規律・原因</h1>
+    <h2>從第谷的觀測台，走進克卜勒的橢圓，抵達牛頓的發射場</h2>
+    <div class="ctrl-list">
+      <div class="ctrl-row"><span class="key">W A S D</span><span>移動（Shift 快跑）</span></div>
+      <div class="ctrl-row"><span class="key">↑↓←→</span><span>轉動視角（純鍵盤可玩）</span></div>
+      <div class="ctrl-row"><span class="key">滑鼠</span><span>也可轉視角（點畫面鎖定、Esc 解鎖）</span></div>
+      <div class="ctrl-row"><span class="key">E</span><span>互動（靠近門、展板、人物時）</span></div>
+      <div class="ctrl-row"><span class="key">H</span><span>回到入口大廳</span></div>
+    </div>
+    <button id="startBtn">進 入 展 間</button>
+    <div class="intro-note">三道門依序解鎖：觀測（第谷的觀測台）→ 規律（克卜勒的橢圓廳）→ 原因（牛頓的發射場），全數完成後開啟反思展區。右下角可隨時呼叫 AI 老師——在 Claude 環境中執行時為真實 AI 對話，離線時按 ⚙ 可填入自己的 API Key。左側任務地圖底部有示範用全解鎖捷徑。</div>
+  </div>
+</div>
+
+<div class="hud" id="zoneTag">目前區域<b id="zoneName">入口大廳</b></div>
+
+<div class="hud" id="map">
+  <h3>任務地圖</h3>
+  <div class="mrow open" id="m0"><span class="st">◆</span><span class="nm">入口大廳</span><button data-z="0">前往</button></div>
+  <div class="mrow open" id="m1"><span class="st">○</span><span class="nm">觀測・第谷的觀測台</span><button data-z="1">前往</button></div>
+  <div class="mrow" id="m2"><span class="st">🔒</span><span class="nm">規律・克卜勒的橢圓廳</span><button data-z="2" disabled>前往</button></div>
+  <div class="mrow" id="m3"><span class="st">🔒</span><span class="nm">原因・牛頓的發射場</span><button data-z="3" disabled>前往</button></div>
+  <div class="mrow" id="m4"><span class="st">🔒</span><span class="nm">反思展區</span><button data-z="4" disabled>前往</button></div>
+  <button id="unlockAll" class="clickable">示範用：解鎖全部</button>
+</div>
+
+<div id="toast"></div>
+<div id="prompt"></div>
+<button id="aiBtn">AI 老師</button>
+
+<div id="aiPanel">
+  <header><span>AI 虛擬教師</span><span><button id="aiGear" title="API 設定">⚙</button><button id="aiClose">✕</button></span></header>
+  <div id="aiKeyRow" style="display:none;padding:8px 12px;border-bottom:1px solid var(--line)">
+    <div style="font-size:11px;color:var(--ink-dim);margin-bottom:5px;line-height:1.6">在 Claude.ai 中開啟本檔可直接對話。若在本機開啟，可填入自己的 Anthropic API Key（只存在此頁記憶體，重新整理即清除）：</div>
+    <div style="display:flex;gap:6px">
+      <input id="aiKeyIn" type="password" placeholder="sk-ant-…" style="flex:1;background:#0a1224;border:1px solid var(--line);border-radius:3px;color:var(--ink);padding:5px 8px;font-size:12px">
+      <button id="aiKeySave" style="background:transparent;border:1px solid var(--field);color:var(--field);border-radius:3px;padding:4px 10px;font-size:12px;cursor:pointer">套用</button>
+    </div>
+  </div>
+  <div id="aiMsgs"></div>
+  <form id="aiForm"><input id="aiInput" placeholder="向 AI 老師提問…" autocomplete="off"><button id="aiSend" type="submit">送出</button></form>
+</div>
+
+<!-- 關卡一：探究表與試算器 -->
+<div class="sidePanel" id="p1">
+  <h3>第谷的探究表</h3>
+  <div class="readout">走到牆邊的行星資料板抄錄數據（至少 4 顆）</div>
+  <div class="records" id="t1rec">（尚未抄錄任何行星）</div>
+  <div style="border-top:1px solid var(--line);margin-top:8px;padding-top:8px">
+    <div class="readout">試算：找出「不隨行星改變」的量</div>
+    <div class="expBtns" id="pBtns">
+      <span style="font-size:12px;color:var(--ink-dim);line-height:2.2">T 的次方</span>
+      <button data-p="1">1</button><button data-p="2">2</button><button data-p="3">3</button>
+    </div>
+    <div class="expBtns" id="qBtns">
+      <span style="font-size:12px;color:var(--ink-dim);line-height:2.2">R 的次方</span>
+      <button data-q="1">1</button><button data-q="2">2</button><button data-q="3">3</button>
+    </div>
+    <button id="t1calc" class="primary" style="width:100%" disabled>計算 Tᵖ／Rᑫ</button>
+    <div class="records" id="t1out"></div>
+    <button id="t1pred" style="width:100%;margin-top:8px;display:none">預測一顆新行星</button>
+  </div>
+</div>
+
+<!-- 關卡二：軌道模型面板 -->
+<div class="sidePanel" id="p2">
+  <h3>克卜勒的軌道模型</h3>
+  <div class="row"><label>離心率 e＝<span id="eV">0.50</span></label><input type="range" id="eSl" min="0.15" max="0.8" step="0.05" value="0.5"></div>
+  <div class="readout">目前速率：<span id="vBar">▮▮▮</span><br><span style="font-size:11px;color:var(--ink-dim)">掃過的扇形每 1.4 秒換一塊顏色——面積相等嗎？</span></div>
+  <div class="records" id="t2task">
+    任務：<br>① 找出太陽的位置（走近模型按 E）<br>② 到近日點觀察台，等行星通過<br>③ 改變離心率兩次，看規律變不變
+  </div>
+</div>
+
+<!-- 關卡三：發射控制台 -->
+<div class="sidePanel" id="p3">
+  <h3>牛頓的發射控制台</h3>
+  <div class="row"><label>發射高度 r＝<span id="rV">2.0</span></label><input type="range" id="rSl" min="1.6" max="6" step="0.1" value="2.0"></div>
+  <div class="row"><label>發射速率 v＝<span id="vV">3.00</span></label><input type="range" id="vSl" min="1" max="6" step="0.05" value="3.00"></div>
+  <div>燃料 <span id="fV">100</span></div>
+  <div class="budget"><i id="fBar" style="width:100%"></i></div>
+  <button id="fire" class="primary" style="width:100%">點火發射（耗燃料 8）</button>
+  <div class="readout" id="orbOut">軌道預報：—</div>
+  <div class="records" id="t3task">
+    任務：<br>① 牛頓大砲：讓砲彈繞地球一整圈<br>② 圓軌道：進入目標環（r≈3）誤差 5% 內<br>③ 同步軌道：r≈4.2、週期 24 小時
+  </div>
+  <div class="records" id="t3rec"></div>
+</div>
+
+<div id="modalBack"><div id="modal"></div></div>
+
+<script>window.BT_CFG={"room": "G1", "l4keep": [0, 3], "ob": [{"x": 203, "y": 1.7, "z": 4, "s": 1.2, "d": 10}], "exKeys": [], "reflectQs": ["進展間前，我原本以為……（寫下你一開始的想法或預測）", "我在展間裡做了什麼、看到了什麼證據？哪一個操作或畫面最關鍵？", "現在我認為……，因為……（我的想法有沒有改變？用證據說明）", "如果發現一顆平均半徑 R＝4 AU 的小行星，你會怎麼用今天找到的規律推估它的公轉週期？"]};</script>
+<script>
+/* ====================================================================
+   BTCore — 九間展間共用核心：行為編碼定義、展間清單、本機儲存、
+   學習歷程檔案（HTML → PDF）、資料匯出。
+   index.html、九個展間、lsa.html 共用同一份。
+   ==================================================================== */
+(function(){
+'use strict';
+
+const CODES=[
+  {k:'RD',zh:'閱讀展板',color:'#4f7fe0',desc:'注視展板、閱讀人物對話或說明文字'},
+  {k:'EX',zh:'操作實驗',color:'#e8962a',desc:'調整參數、按下實驗按鈕、抄錄／蒐集資料'},
+  {k:'AI',zh:'AI 對話',color:'#9b62e6',desc:'開啟 AI 老師、提問、請求回饋'},
+  {k:'NV',zh:'空間導航',color:'#4fa594',desc:'走動、環顧、傳送、進出展區'},
+  {k:'OB',zh:'觀察模型',color:'#22aec4',desc:'靜止注視 3D 模型或正在運行的模擬'},
+  {k:'RF',zh:'反思回顧',color:'#3fae55',desc:'作答與解釋、POE 預測理由、寫反思札記、回顧紀錄牆'},
+  {k:'ID',zh:'閒置',color:'#8a8f99',desc:'超過 10 秒沒有任何操作，或離開頁面'}
+];
+const CODE_KEYS=CODES.map(c=>c.k);
+const CODE_MAP=Object.fromEntries(CODES.map(c=>[c.k,c]));
+
+const HALLS={
+  gravity:{zh:'重力與軌道',accent:'#ffd27a'},
+  em:{zh:'電流磁效應',accent:'#ffb35c'},
+  nuclear:{zh:'強力與弱力',accent:'#b0a4ff'}
+};
+const ROOMS=[
+  {id:'G1',hall:'gravity',level:1,door:'觀測',name:'第谷的觀測台',file:'gravity-1-observe.html',
+   sub:'從六顆行星的資料，找出一個不隨行星改變的量'},
+  {id:'G2',hall:'gravity',level:2,door:'規律',name:'克卜勒的橢圓廳',file:'gravity-2-pattern.html',
+   sub:'太陽在哪裡？近日點為什麼比較快？'},
+  {id:'G3',hall:'gravity',level:3,door:'原因',name:'牛頓的發射場',file:'gravity-3-cause.html',
+   sub:'把砲彈打成衛星，再送上同步軌道'},
+  {id:'E1',hall:'em',level:1,door:'意外',name:'厄斯特的講堂',file:'em-1-accident.html',
+   sub:'1820 年那根動了一下的磁針'},
+  {id:'E2',hall:'em',level:2,door:'規律',name:'走進磁場',file:'em-2-pattern.html',
+   sub:'繞著通電直導線走一圈，走進螺線管的中心'},
+  {id:'E3',hall:'em',level:3,door:'應用',name:'法拉第的工坊',file:'em-3-application.html',
+   sub:'電磁起重機與自己會轉的導線'},
+  {id:'N1',hall:'nuclear',level:1,door:'謎題',name:'拉塞福的空曠原子',file:'nuclear-1-puzzle.html',
+   sub:'縮小十四個數量級，走到原子核門口'},
+  {id:'N2',hall:'nuclear',level:2,door:'膠水',name:'湯川的介子工坊',file:'nuclear-2-glue.html',
+   sub:'親手蓋原子核：質子、中子與強力'},
+  {id:'N3',hall:'nuclear',level:3,door:'變身',name:'費米的衰變室',file:'nuclear-3-transform.html',
+   sub:'β 衰變與點亮太陽的弱力'}
+];
+const ROOM_MAP=Object.fromEntries(ROOMS.map(r=>[r.id,r]));
+
+/* ---------- 儲存 ---------- */
+const LS={student:'bt9_student',sessions:'bt9_sessions'};
+function sget(k,def){try{const v=localStorage.getItem(k);return v?JSON.parse(v):def;}catch(e){return def;}}
+function sset(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true;}catch(e){return false;}}
+function getStudent(){return sget(LS.student,null);}
+function setStudent(s){
+  const st={cls:String(s.cls||'').trim(),seat:String(s.seat||'').trim(),name:String(s.name||'').trim()};
+  st.id=st.cls&&st.seat?`${st.cls}-${st.seat.padStart(2,'0')}`:'';
+  sset(LS.student,st); return st;
+}
+function getSessions(){return sget(LS.sessions,[]);}
+function saveSession(s){
+  const all=getSessions(); const i=all.findIndex(x=>x.id===s.id);
+  if(i>=0) all[i]=s; else all.push(s);
+  if(!sset(LS.sessions,all)){ // 空間不足：丟掉最舊場次的原始事件，保留摘要
+    all.forEach(x=>{ if(x!==s && x.events) x.events=[]; });
+    sset(LS.sessions,all);
+  }
+}
+function clearAll(){try{localStorage.removeItem(LS.sessions);}catch(e){}}
+
+/* ---------- 工具 ---------- */
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const mmss=ms=>{ms=Math.max(0,ms|0);const s=Math.round(ms/1000);return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;};
+const fmtDate=iso=>{if(!iso)return '—';const d=new Date(iso);return `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;};
+
+/* episodes → 代碼序列（LSA 用） */
+function seqOf(session,opt){
+  opt=opt||{};
+  let eps=(session.episodes||[]).filter(e=>CODE_MAP[e.c]);
+  if(opt.minMs) eps=eps.filter(e=>(e.t1-e.t0)>=opt.minMs || e.n>1 || ['EX','AI','RF'].includes(e.c));
+  let seq;
+  if(opt.sampleMs){ seq=[]; eps.forEach(e=>{const k=Math.max(1,Math.round((e.t1-e.t0)/opt.sampleMs)); for(let i=0;i<k;i++) seq.push(e.c);}); }
+  else seq=eps.map(e=>e.c);
+  if(opt.excludeID) seq=seq.filter(c=>c!=='ID');
+  if(opt.merge!==false&&!opt.sampleMs){const m=[];seq.forEach(c=>{if(m[m.length-1]!==c)m.push(c);});seq=m;}
+  return seq;
+}
+function durations(session){
+  const d=Object.fromEntries(CODE_KEYS.map(k=>[k,0]));
+  (session.episodes||[]).forEach(e=>{if(d[e.c]!=null)d[e.c]+=Math.max(0,e.t1-e.t0);});
+  return d;
+}
+function transCounts(seqs){
+  const n=CODE_KEYS.length, M=Array.from({length:n},()=>Array(n).fill(0));
+  seqs.forEach(seq=>{for(let i=0;i<seq.length-1;i++){
+    const a=CODE_KEYS.indexOf(seq[i]), b=CODE_KEYS.indexOf(seq[i+1]);
+    if(a>=0&&b>=0) M[a][b]++;
+  }});
+  return M;
+}
+
+/* ---------- 學習歷程檔案 ---------- */
+const PF_CSS=`
+.pf{font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;color:#1d2433;background:#fff;width:760px;margin:0 auto;padding:28px 34px;line-height:1.65;font-size:13px}
+.pf h1{font-family:"Noto Serif TC","PMingLiU",serif;font-size:26px;letter-spacing:.08em;margin:0 0 4px}
+.pf h2{font-family:"Noto Serif TC","PMingLiU",serif;font-size:19px;letter-spacing:.06em;margin:0 0 2px;color:#1d2433}
+.pf h3{font-size:13px;letter-spacing:.18em;color:#5a6680;margin:16px 0 6px;border-bottom:1px solid #dfe4ee;padding-bottom:3px}
+.pf .pf-eyebrow{font-size:11px;letter-spacing:.3em;color:#8a6a1f;margin-bottom:6px}
+.pf .pf-meta{font-size:12px;color:#5a6680}
+.pf .pf-meta b{color:#1d2433}
+.pf table{border-collapse:collapse;width:100%;font-size:12px}
+.pf td,.pf th{border:1px solid #dfe4ee;padding:4px 7px;text-align:left;vertical-align:top}
+.pf th{background:#f3f5fa;font-weight:600;color:#3a4560}
+.pf .pf-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0}
+.pf .pf-cell{border:1px solid #dfe4ee;border-radius:4px;padding:7px 9px;font-size:12px}
+.pf .pf-cell b{display:block;font-size:13px}
+.pf .pf-done{border-color:#3fae55;background:#f1faf3}
+.pf .pf-tag{display:inline-block;font-size:11px;padding:0 6px;border-radius:3px;color:#fff;margin-right:4px}
+.pf .pf-bar{display:flex;align-items:center;gap:8px;margin:3px 0;font-size:12px}
+.pf .pf-bar span.l{width:112px;white-space:nowrap}
+.pf .pf-bar span.t{width:70px;text-align:right;color:#5a6680}
+.pf .pf-bar i{display:block;height:10px;border-radius:2px}
+.pf .pf-strip{display:flex;height:16px;border-radius:3px;overflow:hidden;margin:6px 0 2px;border:1px solid #dfe4ee}
+.pf .pf-strip i{display:block;height:100%}
+.pf .pf-legend{font-size:11px;color:#5a6680}
+.pf .pf-legend span{margin-right:10px;white-space:nowrap}
+.pf .pf-legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:3px;vertical-align:-1px}
+.pf .pf-q{margin:6px 0 10px}
+.pf .pf-q .q{font-weight:600}
+.pf .pf-q .a{white-space:pre-wrap;border-left:3px solid #dfe4ee;padding:2px 9px;margin-top:3px;color:#2b3550}
+.pf .pf-empty{color:#9aa3b5}
+.pf .pf-ai{font-size:12px;margin:3px 0}
+.pf .pf-ai.user b{color:#8a6a1f}
+.pf .pf-ai.bot b{color:#5b3fa0}
+.pf .pf-session{border-top:3px solid #1d2433;padding-top:14px;margin-top:22px}
+.pf .pf-break{page-break-before:always;break-before:page}
+.pf .pf-avoid{page-break-inside:avoid;break-inside:avoid}
+.pf .pf-foot{margin-top:18px;font-size:10.5px;color:#9aa3b5;border-top:1px solid #dfe4ee;padding-top:6px}
+`;
+
+function legendHTML(){
+  return `<div class="pf-legend">${CODES.map(c=>`<span><i style="background:${c.color}"></i>${c.k} ${c.zh}</span>`).join('')}</div>`;
+}
+function behaviorHTML(sessions){
+  const d=Object.fromEntries(CODE_KEYS.map(k=>[k,0]));
+  sessions.forEach(s=>{const x=durations(s);CODE_KEYS.forEach(k=>d[k]+=x[k]);});
+  const tot=Object.values(d).reduce((a,b)=>a+b,0)||1;
+  const max=Math.max(...Object.values(d),1);
+  const bars=CODES.map(c=>`<div class="pf-bar"><span class="l"><span class="pf-tag" style="background:${c.color}">${c.k}</span>${c.zh}</span>
+    <i style="width:${Math.round(d[c.k]/max*390)}px;background:${c.color}"></i><span class="t">${mmss(d[c.k])}（${Math.round(d[c.k]/tot*100)}%）</span></div>`).join('');
+  // 序列條（只畫第一個場次或單場次）
+  let strip='';
+  if(sessions.length===1){
+    const s=sessions[0], eps=s.episodes||[];
+    const T=Math.max(1,(eps.length?eps[eps.length-1].t1:0)-(eps.length?eps[0].t0:0));
+    strip=`<div class="pf-strip">${eps.map(e=>`<i title="${e.c}" style="width:${Math.max(0.15,(e.t1-e.t0)/T*100)}%;background:${(CODE_MAP[e.c]||{}).color||'#ccc'}"></i>`).join('')}</div>
+      <div class="pf-meta">時間軸（左→右）：每一段顏色代表你當時在做的事</div>`;
+  }
+  // 最常見轉移
+  const M=transCounts(sessions.map(s=>seqOf(s)));
+  const list=[];
+  CODE_KEYS.forEach((a,i)=>CODE_KEYS.forEach((b,j)=>{if(M[i][j]>0)list.push({a,b,n:M[i][j]});}));
+  list.sort((x,y)=>y.n-x.n);
+  const top=list.slice(0,5).map(x=>`<span class="pf-tag" style="background:${CODE_MAP[x.a].color}">${x.a}</span>→<span class="pf-tag" style="background:${CODE_MAP[x.b].color};margin-left:4px">${x.b}</span> ${x.n} 次`).join('　');
+  return `<div class="pf-avoid">${bars}${strip}${legendHTML()}
+    <div style="margin-top:8px;font-size:12px"><b>你最常出現的行為接續：</b>${top||'<span class="pf-empty">（紀錄太少）</span>'}</div></div>`;
+}
+
+function sessionHTML(s,opt){
+  const r=ROOM_MAP[s.room]||{door:'',name:s.room,hall:''};
+  const hall=HALLS[r.hall]||{zh:''};
+  const ach=(s.achievements||[]);
+  const ans=(s.answers||[]);
+  const rf=s.reflection||{};
+  const qs=(s.reflectQs||[]);
+  const ai=(s.ai||[]).filter(m=>m.role==='user'||m.role==='bot').slice(-24);
+  const dur=s.durMs||((s.episodes||[]).length?s.episodes[s.episodes.length-1].t1:0);
+  return `<section class="pf-session ${opt&&opt.breakBefore?'pf-break':''}">
+    <div class="pf-eyebrow">${esc(hall.zh)}・第 ${r.level||''} 間</div>
+    <h2>${esc(r.door)}・${esc(r.name)}</h2>
+    <div class="pf-meta">進入時間 <b>${fmtDate(s.start)}</b>　停留 <b>${mmss(dur)}</b>　狀態 <b>${s.done?'已完成本展間任務':'尚未完成'}</b></div>
+
+    <h3>任務歷程</h3>
+    ${ach.length?`<table><tr><th style="width:62px">時間</th><th>達成</th></tr>${ach.map(a=>`<tr><td>${mmss(a.t)}</td><td>${esc(a.msg)}</td></tr>`).join('')}</table>`:'<div class="pf-empty">（尚無達成紀錄）</div>'}
+
+    <h3>我的預測與作答</h3>
+    ${ans.length?ans.map(a=>`<div class="pf-q pf-avoid"><div class="q">${esc(a.q||'問題')}　<span class="pf-meta">${mmss(a.t)}</span></div>
+      <div class="a">我的選擇：${esc(a.a)}${a.why?`\n我的理由：${esc(a.why)}`:''}</div></div>`).join(''):'<div class="pf-empty">（尚無作答）</div>'}
+
+    <h3>反思札記</h3>
+    ${qs.length?qs.map((q,i)=>`<div class="pf-q pf-avoid"><div class="q">${i+1}. ${esc(q)}</div><div class="a">${rf['q'+(i+1)]?esc(rf['q'+(i+1)]):'<span class="pf-empty">（未填寫）</span>'}</div></div>`).join(''):'<div class="pf-empty">（尚未撰寫）</div>'}
+
+    <div class="pf-avoid"><h3>我的探究行為</h3>
+    ${behaviorHTML([s])}</div>
+
+    <h3>與 AI 老師的對話</h3>
+    ${ai.length?ai.map(m=>`<div class="pf-ai ${m.role}"><b>${m.role==='user'?'我':'AI 老師'}：</b>${esc(m.text)}</div>`).join(''):'<div class="pf-empty">（這次沒有和 AI 老師對話）</div>'}
+  </section>`;
+}
+
+function portfolioHTML(sessions,student,opt){
+  opt=opt||{};
+  student=student||{};
+  const st=`<div class="pf-meta">班級 <b>${esc(student.cls||'—')}</b>　座號 <b>${esc(student.seat||'—')}</b>　姓名 <b>${esc(student.name||'—')}</b>　匯出時間 <b>${fmtDate(new Date().toISOString())}</b></div>`;
+  let cover='';
+  if(opt.cover){
+    const byRoom={};
+    sessions.forEach(s=>{(byRoom[s.room]=byRoom[s.room]||[]).push(s);});
+    cover=`<div class="pf-eyebrow">AVPL遨遊宇宙・AI教師引導下的宇宙物理的四大基本力探索</div>
+      <h1>我的探究學習歷程</h1>${st}
+      <h3>九間展間完成概況</h3>
+      <div class="pf-grid">${ROOMS.map(r=>{const ss=byRoom[r.id]||[];const done=ss.some(x=>x.done);
+        const t=ss.reduce((a,x)=>a+(x.durMs||0),0);
+        return `<div class="pf-cell ${done?'pf-done':''}"><span class="pf-meta">${HALLS[r.hall].zh}・${r.level}</span><b>${r.door}・${r.name}</b>${ss.length?`${done?'✓ 已完成':'進行中'}・${mmss(t)}`:'<span class="pf-empty">未進入</span>'}</div>`;}).join('')}</div>
+      <h3>全部展間的探究行為</h3>${behaviorHTML(sessions)}`;
+  }else{
+    cover=`<div class="pf-eyebrow">AVPL遨遊宇宙・學習歷程檔案</div><h1>我的探究學習歷程</h1>${st}`;
+  }
+  const body=sessions.map((s,i)=>sessionHTML(s,{breakBefore:opt.cover||i>0})).join('');
+  return `<div class="pf">${cover}${body}
+    <div class="pf-foot">行為代碼說明：${CODES.map(c=>`${c.k}＝${c.zh}（${c.desc}）`).join('；')}。紀錄由展間自動產生，僅供學習回顧與研究分析。</div></div>`;
+}
+
+/* ---------- 匯出 ---------- */
+function loadScript(src){return new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s);});}
+function ensurePFStyle(){
+  if(document.getElementById('pf-style')) return;
+  const st=document.createElement('style'); st.id='pf-style'; st.textContent=PF_CSS; document.head.appendChild(st);
+}
+function printHTML(html,title){
+  const w=window.open('','_blank');
+  if(!w){alert('瀏覽器擋下了新視窗，請允許彈出視窗後再試一次。');return;}
+  w.document.write(`<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><title>${esc(title||'學習歷程')}</title>
+    <style>${PF_CSS}@page{size:A4;margin:12mm}body{margin:0;background:#fff}.pf{width:auto;padding:0}</style></head><body>${html}</body></html>`);
+  w.document.close();
+  setTimeout(()=>{try{w.focus();w.print();}catch(e){}},500);
+}
+async function exportPDF(el,filename){
+  try{
+    if(!window.html2pdf) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js');
+    const sx=window.scrollX, sy=window.scrollY, ov=el.closest('.ov,.bt-ov'), osy=ov?ov.scrollTop:0;
+    window.scrollTo(0,0); if(ov) ov.scrollTop=0;
+    try{ await window.html2pdf().set({
+      margin:[8,6,10,6], filename:filename||'學習歷程.pdf',
+      image:{type:'jpeg',quality:0.95},
+      html2canvas:{scale:2,backgroundColor:'#ffffff',useCORS:true,scrollX:0,scrollY:0},
+      jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
+      pagebreak:{mode:['css','legacy'],before:'.pf-break',avoid:'.pf-avoid'}
+    }).from(el).save(); } finally { window.scrollTo(sx,sy); if(ov) ov.scrollTop=osy; }
+    return true;
+  }catch(e){
+    console.warn('html2pdf 失敗，改用列印',e);
+    printHTML(el.outerHTML,filename);
+    return false;
+  }
+}
+function download(text,filename,type){
+  const b=new Blob([text],{type:type||'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=filename;
+  document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},800);
+}
+function exportJSON(student,sessions){
+  const data={format:'bt9-behavior-log',version:1,exportedAt:new Date().toISOString(),
+    codes:CODES.map(c=>({k:c.k,zh:c.zh,desc:c.desc})),student,sessions};
+  download(JSON.stringify(data),`行為紀錄_${(student&&student.id)||'未登錄'}_${new Date().toISOString().slice(0,10)}.json`);
+}
+
+window.BTCore={CODES,CODE_KEYS,CODE_MAP,HALLS,ROOMS,ROOM_MAP,LS,
+  getStudent,setStudent,getSessions,saveSession,clearAll,
+  esc,mmss,fmtDate,seqOf,durations,transCounts,
+  PF_CSS,portfolioHTML,sessionHTML,ensurePFStyle,exportPDF,printHTML,download,exportJSON};
+})();
+
+</script>
+<script>
+/* ====================================================================
+   BT（Behavior Tracker）— 單一展間的行為編碼器
+   七種代碼：RD 閱讀展板｜EX 操作實驗｜AI AI 對話｜NV 空間導航｜
+             OB 觀察模型｜RF 反思回顧｜ID 閒置
+   編碼方式：
+   • 主動事件（立即編碼）：按鈕／滑桿→EX；E 互動依標籤分類；
+     AI 面板開啟與提問→AI；問題型對話框作答→RF；敘事型對話框→RD
+   • 被動取樣（每 1 秒）：移動→NV；注視展板（≤7m、視角內）→RD
+     （反思區內注視紀錄牆→RF）；靜止注視 3D 模型→OB；
+     10 秒無操作→ID；頁面隱藏→ID。被動代碼需連續 2 次取樣一致才切換。
+   • 主動事件後 4 秒內維持該代碼（避免操作中的微小走動被切成 NV）
+   序列以「段落（episode）」儲存；連續相同代碼合併為一段。
+   ==================================================================== */
+(function(){
+'use strict';
+const C=window.BTCore, CFG=window.BT_CFG||{};
+const R=C.ROOM_MAP[CFG.room];
+const HALL=C.HALLS[R.hall];
+const DEBUG=/[?&]debug=1/.test(location.search);
+const HOLD_MS=4000, IDLE_MS=10000, OB_MAX_IDLE=30000, TICK=1000;
+
+const BT={room:R, exitLabel:'離開展間（回 AVPL 大廳）'};
+let S=null, perf0=0;
+let lastInput=performance.now();
+let lastActive={c:null,t:-1e9};
+let modalCode=null, modalTitle='', modalOpenAt=-1e9, justInteracted=-1e9;
+let overlayCode=null;
+let aiTypingAt=-1e9;
+let pend={c:null,k:0};
+let lastPos=null, lastYaw=0;
+const boards=[];
+const tmpV=()=>new THREE.Vector3();
+
+/* ---------- 樣式 ---------- */
+const css=`
+.bt-ov{position:fixed;inset:0;z-index:90;background:rgba(4,6,12,.78);display:none;align-items:flex-start;justify-content:center;overflow:auto;padding:24px 12px}
+.bt-ov.show{display:flex}
+.bt-card{width:min(640px,100%);background:rgba(10,16,32,.96);border:1px solid rgba(120,170,255,.25);border-radius:6px;padding:22px 24px;color:#e6eefb;font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif}
+.bt-card h2{font-family:"Noto Serif TC",serif;font-size:20px;letter-spacing:.1em;color:var(--gold,#ffd27a);margin-bottom:4px}
+.bt-card .sub{font-size:12px;color:#8ea3c4;margin-bottom:12px;line-height:1.7}
+.bt-card label{display:block;font-size:13.5px;margin:12px 0 5px;line-height:1.6}
+.bt-card textarea{width:100%;min-height:62px;background:#0a1224;border:1px solid rgba(120,170,255,.25);border-radius:3px;color:#e6eefb;padding:8px;font-size:14px;font-family:inherit;resize:vertical}
+.bt-btns{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;margin-top:16px}
+.bt-btns button{padding:8px 16px;background:transparent;border:1px solid rgba(120,170,255,.35);color:#e6eefb;border-radius:3px;font-size:13.5px;cursor:pointer;letter-spacing:.06em}
+.bt-btns button.pri{border-color:var(--gold,#ffd27a);color:var(--gold,#ffd27a)}
+.bt-pfwrap{width:min(820px,100%);background:#fff;border-radius:4px;overflow:hidden}
+.bt-pfbar{position:sticky;top:0;z-index:2;display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;padding:10px 12px;background:#1d2433}
+.bt-pfbar span{flex:1;color:#cfd8ea;font-size:13px;align-self:center}
+.bt-pfbar button{padding:7px 14px;border-radius:3px;border:1px solid #cfd8ea;background:transparent;color:#fff;cursor:pointer;font-size:13px}
+.bt-pfbar button.pri{background:#ffd27a;color:#1d2433;border-color:#ffd27a}
+.bt-pfbody{overflow:auto}
+#btRec{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:21;font-size:11px;letter-spacing:.12em;color:#8ea3c4;
+  background:rgba(10,16,32,.7);border:1px solid rgba(120,170,255,.18);border-radius:10px;padding:2px 10px;pointer-events:none}
+#btRec i{display:inline-block;width:7px;height:7px;border-radius:50%;background:#ff6a6a;margin-right:6px;vertical-align:0;animation:btp 1.6s infinite}
+@keyframes btp{50%{opacity:.25}}
+#btRec b{margin-left:6px;padding:0 5px;border-radius:3px;color:#fff}
+.bt-maprow{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.bt-maprow button{flex:1;font-size:11px;padding:4px 6px;background:transparent;border:1px solid rgba(120,170,255,.3);color:#cfe0ff;border-radius:3px;cursor:pointer;pointer-events:auto}
+.bt-stu{display:grid;grid-template-columns:1fr 1fr 1.4fr;gap:8px;margin:4px 0 14px}
+.bt-stu input{width:100%;background:#0a1224;border:1px solid rgba(120,170,255,.25);border-radius:3px;color:#e6eefb;padding:8px;font-size:14px;font-family:inherit}
+.bt-stu input.err{border-color:#ff7a7a}
+.bt-stuh{font-size:12px;color:#8ea3c4;letter-spacing:.1em;margin-top:4px}
+`;
+const st=document.createElement('style'); st.textContent=css; document.head.appendChild(st);
+
+/* ---------- DOM 調整：介紹卡、地圖 ---------- */
+function $(id){return document.getElementById(id);}
+(function adaptDOM(){
+  document.title=`${R.door}・${R.name}｜AVPL遨遊宇宙`;
+  const card=document.querySelector('.intro-card');
+  if(card){
+    const eb=card.querySelector('.eyebrow'); if(eb) eb.textContent=`${HALL.zh}・第 ${R.level} 間｜AVPL遨遊宇宙`;
+    const h1=card.querySelector('h1'); if(h1) h1.textContent=`${R.door}・${R.name}`;
+    const h2=card.querySelector('h2'); if(h2) h2.textContent=R.sub;
+    card.querySelectorAll('.ctrl-row').forEach(row=>{
+      if(/入口大廳/.test(row.textContent)){const sp=row.querySelectorAll('span')[1]; if(sp) sp.textContent='回到本展間起點';}
+    });
+    const note=card.querySelector('.intro-note');
+    if(note) note.innerHTML=`完成本展間的任務後，左側地圖會開啟<b>反思展區</b>：寫下反思札記，就能匯出你的<b>學習歷程 PDF</b>。右下角可隨時呼叫 AI 老師（離線時會改用內建引導）。<br>${CFG.share?'<b>這是單間分享版：</b>學習歷程可預覽但無法下載，AI 老師使用內建引導。<br>':''}本展間會自動記錄你的探究行為（走動、閱讀、操作、提問、反思），只用於學習回饋與研究分析。`;
+    // 學生資料
+    const box=document.createElement('div');
+    const s=C.getStudent()||{};
+    box.innerHTML=`<div class="bt-stuh">學生資料（學習歷程會用到）</div>
+      <div class="bt-stu"><input id="btCls" placeholder="班級 例：201" value="${C.esc(s.cls||'')}">
+      <input id="btSeat" placeholder="座號" inputmode="numeric" value="${C.esc(s.seat||'')}">
+      <input id="btName" placeholder="姓名（可留空）" value="${C.esc(s.name||'')}"></div>`;
+    const sb=$('startBtn'); sb.parentNode.insertBefore(box,sb);
+    box.querySelectorAll('input').forEach(i=>i.addEventListener('keydown',e=>e.stopPropagation()));
+    sb.addEventListener('click',e=>{
+      const cls=$('btCls'), seat=$('btSeat');
+      let ok=true;
+      [cls,seat].forEach(i=>{const bad=!i.value.trim(); i.classList.toggle('err',bad); if(bad) ok=false;});
+      if(!ok){e.stopImmediatePropagation();e.preventDefault();return;}
+      C.setStudent({cls:cls.value,seat:seat.value,name:$('btName').value});
+      begin();
+    },true);
+  }
+  // 地圖：只留本展間與反思區
+  for(let i=0;i<=4;i++){
+    const row=$('m'+i); if(!row) continue;
+    if(i!==R.level && i!==4) row.style.display='none';
+    if(i===R.level){ row.classList.add('open'); const st=row.querySelector('.st'); if(st) st.textContent='○'; const b=row.querySelector('button'); if(b) b.disabled=false; }
+  }
+  const map=$('map');
+  if(map){
+    const h=map.querySelector('h3'); if(h) h.textContent=`任務地圖・${R.id}`;
+    const ua=$('unlockAll'); if(ua) ua.textContent='示範用：直接開啟反思區';
+    const row=document.createElement('div'); row.className='bt-maprow';
+    row.innerHTML='<button id="btPfBtn">學習歷程</button><button id="btExit">回大廳</button>';
+    map.appendChild(row);
+    $('btPfBtn').addEventListener('click',()=>openPortfolio());
+    $('btExit').addEventListener('click',()=>BT.leave());
+    if(CFG.share) $('btExit').hidden=true;
+  }
+  const rec=document.createElement('div'); rec.id='btRec'; rec.style.display='none';
+  rec.innerHTML='<i></i>學習歷程記錄中'+(DEBUG?'<b id="btCur">—</b>':'');
+  document.body.appendChild(rec);
+  // 覆蓋層
+  ['btReflect','btPf','btLeave'].forEach(id=>{const d=document.createElement('div');d.className='bt-ov';d.id=id;document.body.appendChild(d);});
+})();
+
+/* ---------- 工作階段 ---------- */
+function now(){return S?Math.round(performance.now()-perf0):0;}
+function zoneNow(){try{return window.__BT_state().zone;}catch(e){return R.level;}}
+function begin(){
+  if(S) return;
+  perf0=performance.now();
+  S={id:R.id+'-'+Date.now().toString(36),v:1,room:R.id,hall:R.hall,level:R.level,roomName:`${R.door}・${R.name}`,
+     student:C.getStudent(),start:new Date().toISOString(),durMs:0,done:false,
+     ua:navigator.userAgent.slice(0,120),
+     events:[],episodes:[],answers:[],achievements:[],ai:[],reflection:{},reflectQs:CFG.reflectQs||[]};
+  $('btRec').style.display='block';
+  emit('NV','enter',R.id,true);
+  setInterval(tick,TICK);
+  setInterval(save,5000);
+}
+function save(){ if(!S) return; S.durMs=now(); S.end=new Date().toISOString(); closeEp(); C.saveSession(S); }
+addEventListener('pagehide',save);
+document.addEventListener('visibilitychange',()=>{ if(document.hidden){ emit('ID','hidden','',true); save(); } else { lastInput=performance.now(); }});
+
+function closeEp(){const e=S.episodes[S.episodes.length-1]; if(e) e.t1=now();}
+function startEp(c){
+  const t=now(), eps=S.episodes, last=eps[eps.length-1];
+  if(last&&last.c===c){last.t1=t;last.n++;return;}
+  if(last) last.t1=t;
+  eps.push({c,t0:t,t1:t,n:1,z:zoneNow()});
+  pend={c:null,k:0};
+  if(DEBUG){const b=$('btCur'); if(b){b.textContent=c; b.style.background=C.CODE_MAP[c].color;}}
+}
+function emit(c,sub,detail,active){
+  if(!S) return;
+  S.events.push({t:now(),c,s:sub||'',d:String(detail||'').slice(0,80),z:zoneNow()});
+  if(S.events.length>6000) S.events.splice(0,1000);
+  if(active){ lastActive={c,t:now()}; startEp(c); }
+}
+BT.emit=emit;
+
+/* ---------- 被動取樣 ---------- */
+function gaze(cam){
+  const dir=tmpV(); cam.getWorldDirection(dir);
+  const cp=cam.position, tp=tmpV();
+  let best=null, bestR=1;
+  const test=(type,pos,size,maxD)=>{
+    tp.copy(pos).sub(cp); const d=tp.length(); if(d>maxD||d<0.3) return;
+    tp.divideScalar(d);
+    const ang=Math.acos(Math.max(-1,Math.min(1,dir.dot(tp))));
+    const lim=Math.atan2(size,d)+0.17;
+    const r=ang/lim; if(r<bestR){bestR=r;best=type;}
+  };
+  for(const b of boards){ if(!b.parent) continue; b.getWorldPosition(tp); const p=tp.clone(); test('RD',p,1.6,7.5); }
+  for(const o of (CFG.ob||[])){ test('OB',new THREE.Vector3(o.x,o.y,o.z),o.s||1.5,o.d||22); }
+  return best;
+}
+function tick(){
+  if(!S) return;
+  const t=now(), cam=window.__BT_cam;
+  let st={zone:R.level,uiOpen:false}; try{st=window.__BT_state();}catch(e){}
+  const idle=performance.now()-lastInput;
+  let cand=null, immediate=false;
+  const aiInput=$('aiInput');
+  if(document.hidden){cand='ID';immediate=true;}
+  else if(overlayCode){cand=overlayCode;immediate=true;}
+  else if(st.uiOpen&&modalCode){cand=modalCode;immediate=true;}
+  else if(aiInput&&document.activeElement===aiInput&&performance.now()-aiTypingAt<8000){cand='AI';immediate=true;}
+  else if(t-lastActive.t<HOLD_MS&&lastActive.c){cand=lastActive.c;immediate=true;}
+  else if(cam){
+    const p=cam.position;
+    const moved=lastPos?Math.hypot(p.x-lastPos.x,p.z-lastPos.z):0;
+    const turned=Math.abs(cam.rotation.y-lastYaw);
+    if(moved>0.6) cand='NV';
+    else{
+      const g=gaze(cam);
+      if(g==='RD') cand=(st.zone===4)?'RF':'RD';
+      else if(g==='OB'&&idle<OB_MAX_IDLE) cand='OB';
+      else if(idle>IDLE_MS) cand='ID';
+      else if(turned>0.35) cand='NV';
+    }
+  }
+  if(cam){lastPos={x:cam.position.x,z:cam.position.z};lastYaw=cam.rotation.y;}
+  const cur=S.episodes.length?S.episodes[S.episodes.length-1].c:null;
+  if(cand&&cand!==cur){
+    if(immediate){emit(cand,'sample','',false);startEp(cand);}
+    else{
+      if(pend.c===cand) pend.k++; else pend={c:cand,k:1};
+      if(pend.k>=2){emit(cand,'sample','',false);startEp(cand);}
+    }
+  }else{ pend={c:null,k:0}; closeEp(); }
+}
+
+/* ---------- 輸入監聽 ---------- */
+const bump=()=>{lastInput=performance.now();};
+['keydown','mousedown','touchstart','wheel'].forEach(ev=>addEventListener(ev,bump,true));
+addEventListener('mousemove',e=>{ if(document.pointerLockElement && (Math.abs(e.movementX)+Math.abs(e.movementY))>2) bump(); },true);
+addEventListener('keydown',e=>{
+  const tag=(e.target.tagName||'').toLowerCase();
+  if(e.target&&e.target.id==='aiInput'){aiTypingAt=performance.now();return;}
+  if(tag==='input'||tag==='textarea') return;
+  let ui=false; try{ui=window.__BT_state().uiOpen;}catch(_){}
+  if(!ui&&!overlayCode&&(CFG.exKeys||[]).includes(e.code)) emit('EX','key',e.code,true);
+},true);
+let lastRange=0;
+document.addEventListener('click',e=>{
+  if(!S) return;
+  const el=e.target.closest('button,input,select,label,a'); if(!el) return;
+  if(el.closest('#intro,.bt-ov,#modal,#prompt')) return;
+  if(el.closest('#aiPanel')){ if(el.id==='aiGear'||el.id==='aiKeySave') return; return; }
+  if(el.id==='aiBtn'){ const open=$('aiPanel').style.display!=='flex'; if(open) emit('AI','open','',true); return; }
+  if(el.closest('#map')){ if(el.dataset&&el.dataset.z!=null) return; return; }
+  if(el.type==='range') return;
+  emit('EX','click',(el.textContent||el.id||'').trim(),true);
+},true);
+document.addEventListener('input',e=>{
+  if(!S) return;
+  const el=e.target; if(!el||el.type!=='range') return;
+  const t=now(); lastActive={c:'EX',t};
+  if(t-lastRange>1500){lastRange=t; emit('EX','slider',el.id+'='+el.value,true);}
+},true);
+
+/* ---------- 給主程式呼叫的掛鉤 ---------- */
+BT.addBoard=m=>{boards.push(m);};
+BT.startZone=()=>R.level;
+BT.onGoto=z=>{ if(S) emit('NV','teleport',String(z),true); if(z===4&&S) setTimeout(()=>{ if(!S.reflection.saved) hint('反思展區：走到中間的台座按 E「反思札記與學習歷程」，或點左側地圖的「學習歷程」'); },900); };
+BT.onUnlock=prog=>{
+  if(!S) return;
+  if(prog&&prog['l'+R.level]){ if(!S.done){S.done=true;S.doneAt=now();save();} }
+  else S.demoUnlock=true;   // 示範捷徑開的，不算完成
+};
+BT.filterL4=(arr,scene)=>{ const keep=CFG.l4keep||[0,1,2,3]; arr.forEach((b,i)=>{ if(!keep.includes(i)) scene.remove(b); }); };
+function classify(label){
+  if(/回到|離開|進入/.test(label)) return ['NV','door'];
+  if(/AI|回饋/.test(label)) return ['AI','feedback'];
+  if(/交談|讀|閱讀/.test(label)) return ['RD','npc'];
+  if(/抄錄|測量|操作|蒐集|紀錄/.test(label)) return ['EX','collect'];
+  if(/回答|三連問|謎題|反思|回顧|札記/.test(label)) return ['RF','answer'];
+  return ['EX','interact'];
+}
+BT.interact=it=>{
+  if(S){ const [c,s]=classify(it.label||''); emit(c,s,it.label,true); justInteracted=now(); }
+  it.act();
+};
+BT.onModal=html=>{
+  modalTitle=((/<h2[^>]*>([\s\S]*?)<\/h2>/.exec(html)||[])[1]||'').replace(/<[^>]+>/g,'').trim();
+  const isQ=/class="opts"|<textarea|type="number"|type=number/.test(html);
+  modalCode=isQ?'RF':'RD'; modalOpenAt=now();
+  if(S&&now()-justInteracted>400) emit(modalCode,isQ?'question':'read',modalTitle,true);
+};
+BT.onToast=msg=>{
+  msg=String(msg);
+  if(S&&/^[✓★]/.test(msg)){ S.achievements.push({t:now(),msg}); }
+  if(/之門/.test(msg)&&!/反思/.test(msg)){
+    msg=msg.replace(/[^—。]*之門[^—。]*。?/g,'').replace(/——\s*$/,'').replace(/。\s*$/,'');
+    msg+='。反思展區已開啟（左側地圖可前往）';
+  }
+  return msg;
+};
+BT.onAI=(role,text)=>{
+  if(!S) return;
+  if(role==='user'||role==='bot') S.ai.push({t:now(),role,text:String(text).slice(0,600)});
+  if(role==='user') emit('AI','ask',text,true);
+};
+// 對話框作答紀錄
+(function(){
+  const md=$('modal'); if(!md) return;
+  md.addEventListener('click',e=>{
+    if(!S) return;
+    const b=e.target.closest('button'); if(!b) return;
+    const ta=md.querySelector('textarea'), ni=md.querySelector('input[type=number]');
+    const inOpts=!!b.closest('.opts');
+    if(!inOpts && !(ta||ni)) return;
+    const a=inOpts?(b.textContent||'').trim():(ni?ni.value:(b.textContent||'').trim());
+    const why=ta?ta.value.trim():'';
+    const last=S.answers[S.answers.length-1];
+    if(last&&last.q===modalTitle&&last.a===a&&last.why===why) return;
+    S.answers.push({t:now(),q:modalTitle,a,why});
+    emit('RF','answer',modalTitle+'：'+a,true);
+  },true);
+})();
+function hint(msg){ const t=$('toast'); if(!t) return; t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),5200); }
+
+/* ---------- 反思札記 ---------- */
+function showOv(id,code){ const o=$(id); o.classList.add('show'); overlayCode=code; document.exitPointerLock&&document.exitPointerLock(); if(code) emit(code,id,'',true); }
+function hideOv(id){ $(id).classList.remove('show'); if(!document.querySelector('.bt-ov.show')) overlayCode=null; }
+BT.reflect=function(){
+  if(!S) return;
+  const qs=S.reflectQs, rf=S.reflection;
+  const o=$('btReflect');
+  o.innerHTML=`<div class="bt-card"><h2>反思札記</h2>
+    <div class="sub">${C.esc(R.door)}・${C.esc(R.name)}｜寫下你的想法——沒有標準答案，誠實比正確重要。寫完可以直接匯出學習歷程 PDF。</div>
+    ${qs.map((q,i)=>`<label>${i+1}. ${C.esc(q)}</label><textarea id="btQ${i+1}">${C.esc(rf['q'+(i+1)]||'')}</textarea>`).join('')}
+    <div class="bt-btns"><button id="btRfClose">先關閉</button><button id="btRfSave">儲存</button><button class="pri" id="btRfPdf">儲存並預覽學習歷程</button></div></div>`;
+  o.querySelectorAll('textarea').forEach(t=>t.addEventListener('keydown',e=>e.stopPropagation()));
+  const collect=()=>{ qs.forEach((q,i)=>{rf['q'+(i+1)]=$('btQ'+(i+1)).value.trim();}); rf.saved=true; rf.t=now(); emit('RF','reflection-save','',true); save(); };
+  $('btRfClose').onclick=()=>hideOv('btReflect');
+  $('btRfSave').onclick=()=>{collect();hideOv('btReflect');hint('✓ 反思札記已儲存');};
+  $('btRfPdf').onclick=()=>{collect();hideOv('btReflect');openPortfolio();};
+  showOv('btReflect','RF');
+};
+
+/* ---------- 學習歷程預覽／PDF ---------- */
+function openPortfolio(){
+  if(!S){return;}
+  save(); C.ensurePFStyle();
+  const o=$('btPf');
+  const fn=`學習歷程_${R.id}_${(S.student&&S.student.id)||'未登錄'}.pdf`;
+  o.innerHTML=`<div class="bt-pfwrap"><div class="bt-pfbar"><span>學習歷程預覽・${C.esc(R.door)}・${C.esc(R.name)}</span>
+    <button id="btPfJson">下載行為資料</button><button id="btPfPrint">列印</button><button class="pri" id="btPfDl">下載 PDF</button><button id="btPfClose">關閉</button></div>
+    <div class="bt-pfbody" id="btPfBody">${C.portfolioHTML([S],S.student)}</div></div>`;
+  $('btPfClose').onclick=()=>hideOv('btPf');
+  if(CFG.share){ ['btPfJson','btPfPrint','btPfDl'].forEach(id=>$(id).hidden=true); o.querySelector('.bt-pfbar span').textContent='學習歷程預覽（分享版不提供下載；請截圖保存）'; }
+  $('btPfPrint').onclick=()=>C.printHTML($('btPfBody').innerHTML,fn);
+  $('btPfJson').onclick=()=>{save();C.exportJSON(S.student,[S]);};
+  $('btPfDl').onclick=async()=>{const b=$('btPfDl');b.textContent='產生中…';b.disabled=true;
+    await C.exportPDF($('btPfBody').querySelector('.pf'),fn); b.textContent='下載 PDF';b.disabled=false; emit('RF','pdf','',true);};
+  showOv('btPf','RF');
+}
+BT.openPortfolio=openPortfolio;
+
+/* ---------- 離開 ---------- */
+BT.leave=function(){
+  const o=$('btLeave');
+  if(CFG.share){
+    o.innerHTML=`<div class="bt-card" style="margin-top:12vh"><h2>單間分享版</h2><div class="sub">這個連結只有本展間，沒有 AVPL 大廳。你的紀錄已存在這台裝置的瀏覽器。</div><div class="bt-btns"><button class="pri" id="btLvNo">繼續探索</button></div></div>`;
+    $('btLvNo').onclick=()=>hideOv('btLeave'); showOv('btLeave',null); return;
+  }
+  o.innerHTML=`<div class="bt-card" style="margin-top:12vh"><h2>回 AVPL 大廳？</h2>
+    <div class="sub">${S?'你在這間的學習歷程已自動儲存。':''}${S&&!S.done?'本展間任務還沒完成，之後可以再回來。':''}</div>
+    <div class="bt-btns"><button id="btLvNo">留在這裡</button><button class="pri" id="btLvYes">回大廳</button></div></div>`;
+  $('btLvNo').onclick=()=>hideOv('btLeave');
+  $('btLvYes').onclick=()=>{save();location.href='index.html';};
+  showOv('btLeave',null);
+};
+
+window.BT=BT;
+})();
+
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+'use strict';
+
+/* ================= 基礎 ================= */
+const canvas=document.getElementById('scene');
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setSize(innerWidth,innerHeight);
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0x05070f);
+scene.fog=new THREE.FogExp2(0x05070f,0.014);
+const camera=new THREE.PerspectiveCamera(72,innerWidth/innerHeight,0.1,320); window.__BT_cam=camera;
+camera.rotation.order='YXZ';
+scene.add(new THREE.AmbientLight(0x99aacc,0.65));
+const dl=new THREE.DirectionalLight(0xcfe0ff,0.45); dl.position.set(20,40,10); scene.add(dl);
+const V3=(x,y,z)=>new THREE.Vector3(x,y,z);
+
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(2000,600),new THREE.MeshStandardMaterial({color:0x0a0f1e,roughness:1}));
+ground.rotation.x=-Math.PI/2; ground.position.x=400; scene.add(ground);
+(function stars(){
+  const n=1600,pos=new Float32Array(n*3);
+  for(let i=0;i<n;i++){const th=Math.random()*Math.PI*2,ph=Math.acos(Math.random()*0.95),r=250;
+    pos[i*3]=400+r*Math.sin(ph)*Math.cos(th); pos[i*3+1]=r*Math.cos(ph)+4; pos[i*3+2]=r*Math.sin(ph)*Math.sin(th);}
+  const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  scene.add(new THREE.Points(g,new THREE.PointsMaterial({color:0x9fb4dd,size:0.55})));
+})();
+
+/* 共用 */
+function labelSprite(text,x,y,z,color,scaleW){
+  const cv=document.createElement('canvas');
+  cv.width=64*text.length+80; cv.height=150;
+  const g=cv.getContext('2d');
+  g.font='700 84px "Noto Serif TC","PMingLiU",serif';
+  g.textAlign='center'; g.fillStyle=color; g.shadowColor=color; g.shadowBlur=24;
+  g.fillText(text,cv.width/2,105);
+  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),transparent:true,opacity:0.92}));
+  sp.scale.set(scaleW,scaleW*cv.height/cv.width,1);
+  sp.position.set(x,y,z); scene.add(sp); return sp;
+}
+function makeBoardTexture(title,lines,accent,wide){
+  const W=wide?760:560, H=wide?560:420;
+  const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
+  const g=cv.getContext('2d');
+  g.fillStyle='#0d1526'; g.fillRect(0,0,W,H);
+  g.strokeStyle=accent||'#3a6ea8'; g.lineWidth=4; g.strokeRect(14,14,W-28,H-28);
+  g.fillStyle=accent||'#8fb8ff'; g.font='700 42px "Noto Serif TC",serif'; g.fillText(title,42,80);
+  g.fillStyle='#dfe8f2'; g.font='26px "Noto Sans TC",sans-serif';
+  lines.forEach((ln,i)=>g.fillText(ln,42,140+i*42));
+  return new THREE.CanvasTexture(cv);
+}
+function board(tex,x,y,z,ry,w,h){
+  const m=new THREE.Mesh(new THREE.PlaneGeometry(w||4.0,h||3.0),new THREE.MeshBasicMaterial({map:tex}));
+  m.position.set(x,y,z); m.rotation.y=ry; scene.add(m); return m;
+}
+function room(cx,cz,size,wallColor){
+  const h=4.6,s=size/2;
+  const mat=new THREE.MeshStandardMaterial({color:wallColor,roughness:0.95,side:THREE.DoubleSide});
+  [[cx,h/2,cz-s,0],[cx,h/2,cz+s,0],[cx-s,h/2,cz,Math.PI/2],[cx+s,h/2,cz,Math.PI/2]].forEach(([x,y,z,ry])=>{
+    const w=new THREE.Mesh(new THREE.PlaneGeometry(size,h),mat); w.position.set(x,y,z); w.rotation.y=ry; scene.add(w);
+  });
+  const fl=new THREE.Mesh(new THREE.PlaneGeometry(size,size),new THREE.MeshStandardMaterial({color:0x141c30,roughness:1}));
+  fl.rotation.x=-Math.PI/2; fl.position.set(cx,0.02,cz); scene.add(fl);
+}
+
+/* ================= 狀態 ================= */
+const prog={l1:false,l2:false,l3:false};
+let zone=0, uiOpen=false;
+window.__BT_state=()=>({zone,uiOpen});
+const logs={
+  collected:[], expTries:0, pred:null,
+  poe:null, l2tasks:[false,false,false], eChanges:0,
+  launches:[], escapes:0, crashes:0, orbits:[], fuel:100,
+  t3tasks:[false,false,false]
+};
+
+board=(o=>function(){const m=o.apply(this,arguments);BT.addBoard(m);return m;})(board);
+/* ================= 場景 0：入口大廳 ================= */
+(function buildHall(){
+  const fl=new THREE.Mesh(new THREE.CircleGeometry(17,48),new THREE.MeshStandardMaterial({color:0x101828,roughness:1}));
+  fl.rotation.x=-Math.PI/2; fl.position.y=0.03; scene.add(fl);
+  // 一顆行星緩慢劃過視野（弧線＋殘跡）
+  const pl=new THREE.Mesh(new THREE.SphereGeometry(0.28,14,12),new THREE.MeshBasicMaterial({color:0xffd27a}));
+  scene.add(pl); window.__hallPlanet=pl;
+  const trailPts=[]; for(let i=0;i<40;i++)trailPts.push(V3(0,0,0));
+  const trailG=new THREE.BufferGeometry().setFromPoints(trailPts);
+  const trail=new THREE.Line(trailG,new THREE.LineBasicMaterial({color:0x8fb8ff,transparent:true,opacity:0.5}));
+  scene.add(trail); window.__hallTrail={line:trail,pts:trailPts};
+  window.__doors={};
+  const mkDoor=(x,z,name,key,open)=>{
+    const frame=new THREE.Mesh(new THREE.BoxGeometry(3.2,4,0.4),new THREE.MeshStandardMaterial({color:0x2a3450,roughness:0.8}));
+    frame.position.set(x,2,z); scene.add(frame);
+    const port=new THREE.Mesh(new THREE.PlaneGeometry(2.5,3.3),
+      new THREE.MeshBasicMaterial({color:open?0x8fb8ff:0x2c3448,transparent:true,opacity:0.28,side:THREE.DoubleSide}));
+    port.position.set(x,1.85,z+(z<0?0.25:-0.25)); scene.add(port);
+    labelSprite(name,x,4.6,z,'#ffd27a',2.6);
+    window.__doors[key]=port;
+  };
+  mkDoor(-8,-14,'觀測','d1',true);
+  mkDoor( 0,-14,'規律','d2',false);
+  mkDoor( 8,-14,'原因','d3',false);
+  mkDoor( 0, 14,'反思','d4',false);
+})();
+
+/* ================= 場景 1：第谷的觀測台 (200,0) ================= */
+const PLANETS=[
+  {n:'水星',T:0.241,R:0.39},{n:'金星',T:0.615,R:0.72},{n:'地球',T:1.00,R:1.00},
+  {n:'火星',T:1.88,R:1.52},{n:'木星',T:11.8,R:5.20},{n:'土星',T:29.5,R:9.54}
+];
+const L1={cx:200,cz:0,p:0,q:0};
+(function buildL1(){
+  // 圓頂觀測台：圓形牆
+  const wall=new THREE.Mesh(new THREE.CylinderGeometry(11,11,4.8,40,1,true),
+    new THREE.MeshStandardMaterial({color:0x1a2236,roughness:0.95,side:THREE.DoubleSide}));
+  wall.position.set(200,2.4,0); scene.add(wall);
+  const fl=new THREE.Mesh(new THREE.CircleGeometry(11,40),new THREE.MeshStandardMaterial({color:0x141c30,roughness:1}));
+  fl.rotation.x=-Math.PI/2; fl.position.set(200,0.02,0); scene.add(fl);
+  // 六面行星資料板環繞
+  PLANETS.forEach((p,i)=>{
+    const a=(i/PLANETS.length)*Math.PI*2;
+    const x=200+Math.cos(a)*9.6, z=Math.sin(a)*9.6;
+    const tex=makeBoardTexture(p.n,[
+      `公轉週期 T ＝ ${p.T} 年`,
+      `平均軌道半徑 R ＝ ${p.R} AU`,
+      '','（走近按 E 抄錄進探究表）'],'#ffd27a');
+    const b=board(tex,x,2.3,z,Math.atan2(200-x,0-z)+Math.PI,3.2,2.4);
+    b.lookAt(200,2.3,0);
+  });
+  board(makeBoardTexture('第谷的手稿',[
+    '二十年，每一夜，肉眼與六分儀。',
+    '第谷留下了當時最精準的行星位置紀錄——',
+    '誤差不到 2 角分。',
+    '他自己沒能從中看出規律；',
+    '他的助手克卜勒，花了八年算出來。',
+    '','你手上的資料，就是他們的資料。'],'#8fb8ff'),200,2.4,-10.4,0,4.2,3.1);
+  // 六分儀
+  const base=new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.45,1.2,12),new THREE.MeshStandardMaterial({color:0x6a5230,roughness:0.5}));
+  base.position.set(203,0.6,4); scene.add(base);
+  const tube=new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.09,2.2,10),new THREE.MeshStandardMaterial({color:0x9a7a40,roughness:0.4}));
+  tube.position.set(203,1.7,4); tube.rotation.z=0.7; scene.add(tube);
+  // NPC 第谷
+  const body=new THREE.Mesh(new THREE.CylinderGeometry(0.32,0.42,1.5,10),new THREE.MeshStandardMaterial({color:0x3a2e52,roughness:0.9}));
+  body.position.set(204.5,0.75,4.8);
+  const head=new THREE.Mesh(new THREE.SphereGeometry(0.26,12,10),new THREE.MeshStandardMaterial({color:0xd8c0a8,roughness:0.8}));
+  head.position.set(204.5,1.75,4.8);
+  scene.add(body,head);
+  labelSprite('第谷',204.5,2.5,4.8,'#ffd27a',1.4);
+})();
+
+/* ================= 場景 2：克卜勒的橢圓廳 (400,0) ================= */
+const L2={a:4.5,e:0.5,nu:0,h:0,orbitG:null,orbitLine:null,planet:null,sun:null,
+          periMark:null,sectors:[],secPts:[],secT:0,secColor:0,periTimer:0,ready:false};
+(function buildL2(){
+  room(400,0,26,0x1a2030);
+  board(makeBoardTexture('克卜勒的八年',[
+    '火星的資料怎麼算都對不上正圓。',
+    '誤差只有 8 角分——比第谷的觀測誤差還大，',
+    '所以克卜勒不肯把它當成雜訊。',
+    '','為了 8 角分，他丟掉了兩千年的圓，',
+    '換成一個沒有人喜歡的形狀：橢圓。'],'#ffd27a'),400,2.3,-12.8,0,4.2,3.1);
+  const g=new THREE.Group();
+  g.position.set(400,2.7,0); g.rotation.x=0.22;
+  scene.add(g); L2.orbitG=g;
+  // 太陽（焦點）、中心標記
+  L2.sun=new THREE.Mesh(new THREE.SphereGeometry(0.42,18,14),
+    new THREE.MeshBasicMaterial({color:0xffd27a}));
+  g.add(L2.sun);
+  const cm=new THREE.Mesh(new THREE.SphereGeometry(0.1,8,8),new THREE.MeshBasicMaterial({color:0x55637f}));
+  g.add(cm); L2.centerMark=cm;
+  L2.planet=new THREE.Mesh(new THREE.SphereGeometry(0.22,14,12),new THREE.MeshBasicMaterial({color:0x8fb8ff}));
+  g.add(L2.planet);
+  // 近日點觀察台（世界座標，稍後由 rebuild 設定）
+  L2.periMark=new THREE.Mesh(new THREE.CylinderGeometry(0.5,0.6,0.18,16),
+    new THREE.MeshBasicMaterial({color:0x8ef0b0,transparent:true,opacity:0.6}));
+  scene.add(L2.periMark);
+  labelSprite('近日點觀察台',404.5,1.4,2.6,'#8ef0b0',2.2);
+  rebuildOrbit();
+  L2.ready=true;
+})();
+function rebuildOrbit(){
+  const g=L2.orbitG,a=L2.a,e=L2.e;
+  const c=a*e, b=a*Math.sqrt(1-e*e);
+  L2.sun.position.set(c,0,0);
+  // 軌道線（以焦點方程繪製）
+  if(L2.orbitLine) g.remove(L2.orbitLine);
+  const pts=[];
+  for(let k=0;k<=128;k++){
+    const nu=k/128*Math.PI*2;
+    const r=a*(1-e*e)/(1+e*Math.cos(nu));
+    pts.push(V3(c+r*Math.cos(nu),0,r*Math.sin(nu)));
+  }
+  L2.orbitLine=new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),
+    new THREE.LineBasicMaterial({color:0x8fb8ff,transparent:true,opacity:0.7}));
+  g.add(L2.orbitLine);
+  // 掃面速率常數：週期固定 14 秒
+  L2.h=2*Math.PI*a*b/14;
+  // 清空扇形
+  L2.sectors.forEach(s=>g.remove(s)); L2.sectors=[]; L2.secPts=[]; L2.secT=0;
+  // 近日點觀察台世界位置：local (a,0,0)
+  L2.periMark.position.set(400+a,0.1,0);
+}
+function planetLocal(nu){
+  const a=L2.a,e=L2.e,c=a*e;
+  const r=a*(1-e*e)/(1+e*Math.cos(nu));
+  return V3(c+r*Math.cos(nu),0,r*Math.sin(nu));
+}
+
+/* ================= 場景 3：牛頓的發射場 (600,0) ================= */
+const MU=25, EARTH={x:600,y:7,z:-6,r:1.2};
+const T3={flying:false,pos:null,vel:null,swept:0,lastAng:0,trailPts:[],trailLine:null,
+          curA:0,curE:0,launchInfo:null};
+(function buildL3(){
+  const fl=new THREE.Mesh(new THREE.CircleGeometry(13,40),new THREE.MeshStandardMaterial({color:0x101828,roughness:1}));
+  fl.rotation.x=-Math.PI/2; fl.position.set(600,0.03,0); scene.add(fl);
+  // 地球
+  const earth=new THREE.Mesh(new THREE.SphereGeometry(EARTH.r,28,22),
+    new THREE.MeshStandardMaterial({color:0x2a6ab0,roughness:0.7,emissive:0x0a2a50,emissiveIntensity:0.6}));
+  earth.position.set(EARTH.x,EARTH.y,EARTH.z); scene.add(earth);
+  const atmo=new THREE.Mesh(new THREE.SphereGeometry(EARTH.r*1.12,28,22),
+    new THREE.MeshBasicMaterial({color:0x6fb0ff,transparent:true,opacity:0.12}));
+  atmo.position.copy(earth.position); scene.add(atmo);
+  // 目標環（垂直平面 z=EARTH.z，Torus 預設就在 XY 平面）
+  const mk=(R,color)=>{
+    const t=new THREE.Mesh(new THREE.TorusGeometry(R,0.03,8,80),
+      new THREE.MeshBasicMaterial({color,transparent:true,opacity:0.45}));
+    t.position.set(EARTH.x,EARTH.y,EARTH.z); scene.add(t); return t;
+  };
+  mk(3.0,0x8ef0b0); mk(4.2,0xffd27a);
+  labelSprite('目標環 r=3',EARTH.x+3.4,EARTH.y+3.0,EARTH.z,'#8ef0b0',2.0);
+  labelSprite('同步軌道 r=4.2',EARTH.x-4.6,EARTH.y+4.2,EARTH.z,'#ffd27a',2.6);
+  // 高塔與大砲
+  const tower=new THREE.Mesh(new THREE.BoxGeometry(0.6,3.4,0.6),new THREE.MeshStandardMaterial({color:0x2e3a56,roughness:0.8}));
+  tower.position.set(605,1.7,4); scene.add(tower);
+  const barrel=new THREE.Mesh(new THREE.CylinderGeometry(0.14,0.18,1.5,10),new THREE.MeshStandardMaterial({color:0x555c66,roughness:0.4}));
+  barrel.position.set(605,3.6,4); barrel.rotation.z=0.8; scene.add(barrel);
+  labelSprite('牛頓大砲',605,4.8,4,'#ffd27a',2.2);
+  // NPC 牛頓
+  const body=new THREE.Mesh(new THREE.CylinderGeometry(0.32,0.42,1.5,10),new THREE.MeshStandardMaterial({color:0x2c2c3e,roughness:0.9}));
+  body.position.set(595,0.75,5);
+  const head=new THREE.Mesh(new THREE.SphereGeometry(0.26,12,10),new THREE.MeshStandardMaterial({color:0xd8c0a8,roughness:0.8}));
+  head.position.set(595,1.75,5); scene.add(body,head);
+  labelSprite('牛頓',595,2.5,5,'#ffd27a',1.3);
+  // 砲彈與軌跡
+  T3.ball=new THREE.Mesh(new THREE.SphereGeometry(0.13,10,8),new THREE.MeshBasicMaterial({color:0xff9a5c}));
+  T3.ball.visible=false; scene.add(T3.ball);
+})();
+const hoursK=24/(2*Math.PI*Math.sqrt(Math.pow(4.2,3)/MU));
+function orbitForecast(r0,v){
+  const eps=v*v/2-MU/r0;
+  if(eps>=0) return {open:true};
+  const a=-MU/(2*eps);
+  const h=r0*v; // 切向發射
+  const e=Math.sqrt(Math.max(0,1+2*eps*h*h/(MU*MU)));
+  const T=2*Math.PI*Math.sqrt(a*a*a/MU)*hoursK;
+  return {open:false,a,e,T};
+}
+function updateForecast(){
+  const r0=+document.getElementById('rSl').value, v=+document.getElementById('vSl').value;
+  document.getElementById('rV').textContent=r0.toFixed(1);
+  document.getElementById('vV').textContent=v.toFixed(2);
+  const f=orbitForecast(r0,v);
+  document.getElementById('orbOut').innerHTML = f.open
+    ? '軌道預報：<b style="color:var(--warn)">超過脫離速度——它不會回來</b>'
+    : `軌道預報：a≈${f.a.toFixed(2)}　e≈${f.e.toFixed(2)}　週期≈${f.T.toFixed(1)} 小時`;
+}
+document.getElementById('rSl').addEventListener('input',updateForecast);
+document.getElementById('vSl').addEventListener('input',updateForecast);
+
+function endFlight(kind){
+  if(!T3.flying) return;
+  T3.flying=false; T3.ball.visible=false;
+  // 存軌跡（降採樣）
+  if(T3.trailPts.length>4){
+    const ds=[]; for(let i=0;i<T3.trailPts.length;i+=3) ds.push([T3.trailPts[i].x-EARTH.x,T3.trailPts[i].y-EARTH.y]);
+    logs.orbits.push({pts:ds,kind});
+    if(logs.orbits.length>12) logs.orbits.shift();
+  }
+}
+document.getElementById('fire').addEventListener('click',()=>{
+  if(logs.fuel<8){toast('燃料不足——先用軌道預報算好再點火');return;}
+  logs.fuel-=8;
+  document.getElementById('fV').textContent=logs.fuel;
+  document.getElementById('fBar').style.width=logs.fuel+'%';
+  endFlight('中斷');
+  const r0=+document.getElementById('rSl').value, v=+document.getElementById('vSl').value;
+  T3.pos={x:r0,y:0}; T3.vel={x:0,y:v};
+  T3.flying=true; T3.swept=0; T3.lastAng=0; T3.trailPts=[];
+  T3.ball.visible=true;
+  const f=orbitForecast(r0,v);
+  T3.launchInfo={r0,v,...f};
+  logs.launches.push({r0,v,open:!!f.open});
+  const rec=document.getElementById('t3rec'), d=document.createElement('div');
+  d.textContent=`r=${r0} v=${v.toFixed(2)} → ${f.open?'脫離':'a='+f.a.toFixed(2)+' e='+f.e.toFixed(2)}`;
+  rec.appendChild(d); rec.scrollTop=1e4;
+  if(T3.trailLine){scene.remove(T3.trailLine);T3.trailLine=null;}
+});
+
+function t3Check(){
+  const f=T3.launchInfo;
+  if(!f||f.open) return;
+  if(!logs.t3tasks[0]){logs.t3tasks[0]=true;toast('✓ 任務①：它繞了一整圈——砲彈成了衛星');}
+  if(!logs.t3tasks[1] && Math.abs(f.a-3)/3<0.05 && f.e<0.12){
+    logs.t3tasks[1]=true;toast('✓ 任務②：目標圓軌道進入成功');}
+  if(!logs.t3tasks[2] && Math.abs(f.a-4.2)/4.2<0.05 && f.e<0.12){
+    logs.t3tasks[2]=true;toast('✓ 任務③：同步軌道！週期 ≈ 24 小時',true);
+    setTimeout(openGeoQuiz,1400);
+  }
+}
+function openGeoQuiz(){
+  if(prog.l3) return;
+  openModal(`<h2>最後一問</h2><div class="sub">說得出原因，才算真的懂</div>
+    <p>你剛把衛星送進了同步軌道。<br>為什麼「跟地球自轉同步」的圓軌道<b>只有一個高度</b>？</p>
+    <div class="opts" style="flex-direction:column">
+      <button data-a="0">因為那個高度的引力剛好消失</button>
+      <button data-a="1">因為圓軌道的週期只由半徑決定——要 24 小時，就只有一個半徑</button>
+      <button data-a="2">因為再高就會被大氣層拖慢</button>
+    </div>`);
+  md.querySelectorAll('.opts button').forEach(b=>b.onclick=()=>{
+    closeModal();
+    if(b.dataset.a==='1'){
+      prog.l3=true; markDone(3); unlock(4);
+      toast('★ 「原因」完成——反思展區之門已開啟',true);
+      aiPush('bot','（牛頓）蘋果和月亮，落下的是同一種力。去反思展區看看你這一路的軌跡吧。');
+    }else{
+      toast('再想想——引力在那個高度並沒有消失，大氣也早就稀薄到可以忽略');
+      setTimeout(openGeoQuiz,1500);
+    }
+  });
+}
+
+/* ================= 場景 4：反思展區 (800,0) ================= */
+const L4={cx:800,cz:0,boards:[]};
+(function buildL4(){
+  room(800,0,18,0x1a2030);
+  labelSprite('反思展區',800,5.0,0,'#8ef0b0',3.4);
+  labelSprite('你的軌道嘗試',808.5,4.3,0,'#8fb8ff',2.6);
+  const pmat=new THREE.MeshStandardMaterial({color:0x2a3450,roughness:0.7});
+  const p1=new THREE.Mesh(new THREE.CylinderGeometry(0.45,0.55,1.0,16),pmat); p1.position.set(800,0.5,0); scene.add(p1);
+  const p2=new THREE.Mesh(new THREE.CylinderGeometry(0.45,0.55,1.0,16),pmat.clone()); p2.position.set(800,0.5,-4); scene.add(p2);
+  labelSprite('個人回饋',800,1.9,0,'#8fb8ff',1.7);
+  labelSprite('總回顧',800,1.9,-4,'#ffd27a',1.5);
+})();
+function buildL4Boards(){
+  L4.boards.forEach(b=>scene.remove(b)); L4.boards=[];
+  // 關卡一：抄錄與試算史
+  const l1lines = logs.collected.length
+    ? [...logs.collected.map(p=>`抄錄：${p.n}　T=${p.T}　R=${p.R}`).slice(0,6),
+       `試算 ${logs.expTries} 次${logs.pred?`・預測天王星 T≈${logs.pred} 年`:''}`]
+    : ['（沒有紀錄）'];
+  L4.boards.push(board(makeBoardTexture('觀測・你的探究表',l1lines,'#ffd27a',true),800-8.8,2.2,0,Math.PI/2));
+  // 關卡三：軌道嘗試「失敗地圖」
+  const cv=document.createElement('canvas'); cv.width=380; cv.height=300;
+  const g=cv.getContext('2d');
+  g.fillStyle='#0a1020'; g.fillRect(0,0,380,300);
+  const cxp=190,cyp=150,scale=12.5;
+  g.strokeStyle='rgba(143,184,255,0.3)';
+  [3.0,4.2].forEach(R=>{g.beginPath();g.arc(cxp,cyp,R*scale,0,Math.PI*2);g.stroke();});
+  g.fillStyle='#2a6ab0'; g.beginPath(); g.arc(cxp,cyp,EARTH.r*scale,0,Math.PI*2); g.fill();
+  const cols=['#ff9a5c','#8ef0b0','#ffd27a','#8fb8ff','#ff6a8c','#b09aff'];
+  logs.orbits.forEach((o,i)=>{
+    g.strokeStyle=cols[i%cols.length]; g.globalAlpha=0.85; g.beginPath();
+    o.pts.forEach(([x,y],k)=>{const px=cxp+x*scale,py=cyp-y*scale; k?g.lineTo(px,py):g.moveTo(px,py);});
+    g.stroke();
+  });
+  g.globalAlpha=1; g.fillStyle='#8ea3c4'; g.font='16px sans-serif';
+  g.fillText(`共 ${logs.launches.length} 次發射・脫離 ${logs.escapes} 次・墜毀 ${logs.crashes} 次`,16,286);
+  const hb=new THREE.Mesh(new THREE.PlaneGeometry(4.2,3.3),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(cv)}));
+  hb.position.set(800+8.8,2.2,0); hb.rotation.y=-Math.PI/2; scene.add(hb); L4.boards.push(hb);
+  // 關卡二紀錄
+  const poe=logs.poe;
+  L4.boards.push(board(makeBoardTexture('規律・你的預測與觀察',[
+    poe?`POE 預測：「${poe.ans}」${poe.ans==='變快'?'（正確）':'（觀察後修正為：變快）'}`:'（未作答）',
+    `離心率調整：${logs.eChanges} 次`,
+    logs.l2tasks[0]?'✓ 指出太陽在焦點':'－ 未完成太陽位置',
+    logs.l2tasks[1]?'✓ 近日點觀察完成':'－ 未到近日點觀察台',
+    '','八角分的誤差，換來了橢圓。'],'#8fb8ff',true),800,2.2,-8.8,0));
+  // 遷移題
+  L4.boards.push(board(makeBoardTexture('最後一問（不計分）',[
+    '如果地球突然變重兩倍，',
+    '你剛才送上同步軌道的衛星',
+    '會怎麼樣？',
+    '','（把你的推理告訴 AI 老師——',
+    '提示：想想引力和它現在的速率。）'],'#ff9a7a',true),800,2.2,8.8,Math.PI));
+}
+
+/* ================= 進度／傳送 ================= */
+const spawns=[{x:0,z:8},{x:200,z:7.5},{x:400,z:9},{x:600,z:8.5},{x:800,z:6}];
+let _uiZone=-1;
+function setZoneUI(){
+  if(zone===_uiZone) return; _uiZone=zone;
+  document.getElementById('p1').style.display=(zone===1)?'block':'none';
+  document.getElementById('p2').style.display=(zone===2)?'block':'none';
+  document.getElementById('p3').style.display=(zone===3)?'block':'none';
+}
+function goto(z){ if(z===0) z=BT.startZone(); BT.onGoto(z);
+  zone=z;
+  const s=spawns[z];
+  camera.position.set(s.x,1.7,s.z);
+  camera.rotation.set(0,0,0);
+  if(z===2&&logs.poe===null) setTimeout(openPOE,600);
+  if(z===3) updateForecast();
+  if(z===4){ buildL4Boards(); BT.filterL4(L4.boards,scene); }
+  setZoneUI();
+}
+function unlock(n){ BT.onUnlock(prog); n=4;
+  const names={2:'d2',3:'d3',4:'d4'};
+  const row=document.getElementById('m'+n);
+  row.classList.add('open'); row.querySelector('.st').textContent='○';
+  row.querySelector('button').disabled=false;
+  const d=window.__doors[names[n]]; if(d) d.material.color.set(0x8fb8ff);
+}
+function markDone(n){
+  const row=document.getElementById('m'+n);
+  row.querySelector('.st').textContent='✓'; row.querySelector('.st').style.color='var(--ok)';
+}
+document.querySelectorAll('#map button[data-z]').forEach(b=>b.addEventListener('click',()=>goto(+b.dataset.z)));
+document.getElementById('unlockAll').addEventListener('click',()=>{unlock(2);unlock(3);unlock(4);toast('示範模式：全部解鎖');});
+
+/* ================= 模態框／Toast ================= */
+const mb=document.getElementById('modalBack'), md=document.getElementById('modal');
+function openModal(html){ BT.onModal(html); md.innerHTML=html; mb.style.display='flex'; uiOpen=true; document.exitPointerLock&&document.exitPointerLock(); }
+function closeModal(){ mb.style.display='none'; uiOpen=false; }
+mb.addEventListener('click',e=>{ if(e.target===mb) closeModal(); });
+let toastTimer;
+function toast(msg,long){ msg=BT.onToast(msg);
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),long?4600:2600);
+}
+
+/* ================= 互動點 ================= */
+function npcTycho(){
+  openModal(`<h2>第谷</h2><div class="sub">1590年代・汶島天堡</div>
+  <p>「望遠鏡？那是我死後才發明的東西。這裡的每一筆資料，都是肉眼、六分儀，和二十年的夜晚。」</p>
+  <p>「數字都在牆上。我到死都沒看出它們藏著什麼——<b>也許你可以。</b>」</p>
+  <p>「提醒你一件事：別急著把兩個數字相除。有時候，得先讓它們的次方不一樣。」</p>
+  <div class="foot"><button>去抄資料</button></div>`);
+  md.querySelector('.foot button').onclick=closeModal;
+}
+function sunQuiz(){
+  if(logs.l2tasks[0]){toast('已回答——太陽在焦點上');return;}
+  openModal(`<h2>太陽在哪裡？</h2><div class="sub">看清楚模型再回答——灰點是橢圓的幾何中心</div>
+    <p>這顆行星繞著橢圓走。太陽的位置在——</p>
+    <div class="opts" style="flex-direction:column">
+      <button data-a="0">橢圓的中心</button>
+      <button data-a="1">橢圓的其中一個焦點</button>
+      <button data-a="2">橢圓的邊上</button>
+    </div>`);
+  md.querySelectorAll('.opts button').forEach(b=>b.onclick=()=>{
+    closeModal();
+    if(b.dataset.a==='1'){logs.l2tasks[0]=true;toast('✓ 任務①：太陽不在中心，在焦點——課本 2D 圖最常騙人的地方');l2CheckClear();}
+    else toast('再看一次模型：灰色小點才是中心，太陽在它旁邊那顆亮的');
+  });
+}
+function l2CheckClear(){
+  if(prog.l2) return;
+  if(logs.l2tasks.every(Boolean)) setTimeout(openL2Final,1200);
+}
+function openL2Final(){
+  if(prog.l2) return;
+  openModal(`<h2>為什麼近日點比較快？</h2><div class="sub">克卜勒第二定律的核心</div>
+    <p>你看到了：靠近太陽時它跑得快，遠離時慢。<br><b>為什麼？</b></p>
+    <div class="opts" style="flex-direction:column">
+      <button data-a="0">靠近太陽時被高溫推了一把</button>
+      <button data-a="1">連線變短了——要在相同時間掃過相同面積，就得跑得更快</button>
+      <button data-a="2">純屬巧合，每顆行星不一樣</button>
+    </div>`);
+  md.querySelectorAll('.opts button').forEach(b=>b.onclick=()=>{
+    closeModal();
+    if(b.dataset.a==='1'){
+      prog.l2=true; markDone(2); unlock(3);
+      toast('★ 「規律」完成——原因之門已開。克卜勒只回答了「怎麼動」，牛頓要回答「為什麼」',true);
+      aiPush('bot','（克卜勒）我算出了規律，但我不知道是什麼力在推它。下一道門後的人知道。');
+    }else{
+      toast('地上的扇形色塊就是提示——每一塊的面積都相等');
+      setTimeout(openL2Final,1600);
+    }
+  });
+}
+function endingRecap(){
+  const poe=logs.poe;
+  const bestGeo=logs.t3tasks[2];
+  openModal(`<h2>回顧・觀測、規律、原因</h2><div class="sub">你這一趟走過的路</div>
+  <p><b>觀測</b>──你在第谷的觀測台抄錄了 ${logs.collected.length} 顆行星的資料，試算 ${logs.expTries} 次後找到那個不變的量：T²／R³${logs.pred?`，並成功預測天王星的週期約 ${logs.pred} 年`:''}。</p>
+  <p><b>規律</b>──你預測近日點速率「${poe?poe.ans:'—'}」${poe&&poe.ans==='變快'?'（一開始就對了）':'（觀察後你看到了：變快）'}，指出太陽在焦點，並把離心率改了 ${logs.eChanges} 次確認等面積規律不變。</p>
+  <p><b>原因</b>──你點火 ${logs.launches.length} 次（脫離 ${logs.escapes} 次、墜毀 ${logs.crashes} 次），剩餘燃料 ${logs.fuel}／100${bestGeo?'，最後把衛星送進了同步軌道':''}。</p>
+  <p style="border-top:1px solid var(--line);padding-top:12px">人類花了兩千年弄懂這條路徑的形狀。<br><b>你花了一節課——而且是自己算出來的。</b></p>
+  <p class="sub">牆上還有最後一問：地球變重兩倍，你的衛星會怎樣？（告訴 AI 老師你的推理）</p>
+  <div class="foot"><button id="endOk">關閉</button></div>`);
+  document.getElementById('endOk').onclick=closeModal;
+}
+
+const interactables=[
+  {x:-8,z:-14,r:2.6,zone:0,label:'進入：觀測・第谷的觀測台',act:()=>goto(1)},
+  {x:0,z:-14,r:2.6,zone:0,label:'進入：規律・克卜勒的橢圓廳',act:()=>prog.l1?goto(2):toast('這道門還鎖著——先完成「觀測」')},
+  {x:8,z:-14,r:2.6,zone:0,label:'進入：原因・牛頓的發射場',act:()=>prog.l2?goto(3):toast('這道門還鎖著——先完成「規律」')},
+  {x:0,z:14,r:2.6,zone:0,label:'進入：反思展區',act:()=>prog.l3?goto(4):toast('完成三道關卡後開啟')},
+  {x:204.5,z:4.8,r:2.2,zone:1,label:'與第谷交談',act:npcTycho},
+  {x:400,z:0,r:3.4,zone:2,label:'回答：太陽在哪裡？',act:sunQuiz},
+  {x:595,z:5,r:2.2,zone:3,label:'與牛頓交談',act:()=>{
+    openModal(`<h2>牛頓</h2><div class="sub">1687・《原理》</div>
+    <p>「把砲彈打得夠快，它的墜落就永遠追不上地面的彎曲——<b>它就在墜落中環繞。</b>」</p>
+    <p>「月亮沒有懸在天上。月亮一直在掉，只是一直沒掉到。」</p>
+    <p>「控制台交給你。記住：燃料有限，先算，再點火。」</p>
+    <div class="foot"><button>開始發射</button></div>`);
+    md.querySelector('.foot button').onclick=closeModal;
+  }},
+  {x:800,z:0,r:1.9,zone:4,label:'請 AI 老師給我個人回饋',act:aiSummary},
+  {x:800,z:-4,r:1.9,zone:4,label:'反思札記與學習歷程',act:()=>BT.reflect()},
+  {x:200,z:9.5,r:2.2,zone:1,label:BT.exitLabel,act:()=>BT.leave()},
+  {x:400,z:11.5,r:2.2,zone:2,label:BT.exitLabel,act:()=>BT.leave()},
+  {x:600,z:11,r:2.2,zone:3,label:BT.exitLabel,act:()=>BT.leave()},
+  {x:800,z:8.3,r:1.8,zone:4,label:BT.exitLabel,act:()=>BT.leave()},
+];
+// 六面行星板的抄錄互動點
+PLANETS.forEach((p,i)=>{
+  const a=(i/PLANETS.length)*Math.PI*2;
+  interactables.push({x:200+Math.cos(a)*8.6,z:Math.sin(a)*8.6,r:2.0,zone:1,
+    label:`抄錄「${p.n}」的資料`,act:()=>{
+      if(logs.collected.find(c=>c.n===p.n)){toast(p.n+' 已經抄過了');return;}
+      logs.collected.push(p);
+      const rec=document.getElementById('t1rec');
+      if(logs.collected.length===1) rec.textContent='';
+      const d=document.createElement('div');
+      d.innerHTML=`<b>${p.n}</b>　T=${p.T} 年　R=${p.R} AU`;
+      rec.appendChild(d);
+      toast(`✓ 抄錄 ${p.n}（${logs.collected.length}／6）`);
+      if(logs.collected.length>=4) document.getElementById('t1calc').disabled=false;
+    }});
+});
+let nearInteract=null;
+
+/* ================= 關卡一：試算器 ================= */
+document.querySelectorAll('#pBtns button').forEach(b=>b.addEventListener('click',()=>{
+  L1.p=+b.dataset.p;
+  document.querySelectorAll('#pBtns button').forEach(x=>x.classList.toggle('sel',x===b));
+}));
+document.querySelectorAll('#qBtns button').forEach(b=>b.addEventListener('click',()=>{
+  L1.q=+b.dataset.q;
+  document.querySelectorAll('#qBtns button').forEach(x=>x.classList.toggle('sel',x===b));
+}));
+document.getElementById('t1calc').addEventListener('click',()=>{
+  if(!L1.p||!L1.q){toast('先選 T 和 R 的次方');return;}
+  logs.expTries++;
+  const out=document.getElementById('t1out');
+  const vals=logs.collected.map(p=>({n:p.n,v:Math.pow(p.T,L1.p)/Math.pow(p.R,L1.q)}));
+  out.innerHTML=`<b>T^${L1.p}／R^${L1.q}</b><br>`+vals.map(x=>`${x.n}：${x.v.toFixed(3)}`).join('<br>');
+  const vs=vals.map(x=>x.v), constant=Math.max(...vs)/Math.min(...vs)<1.1;
+  if(constant){
+    out.innerHTML+='<br><b style="color:var(--ok)">每一顆都一樣——不變的量出現了！</b>';
+    document.getElementById('t1pred').style.display='block';
+    toast('✓ T²／R³ 對每顆行星都是定值——這就是克卜勒第三定律');
+  }else{
+    out.innerHTML+='<br><span style="color:var(--warn)">數值不一致，換個次方組合試試</span>';
+    if(logs.expTries===3) aiPush('bot','（第谷）你有沒有試過讓它們的次方「不一樣」？T 和 R 不必用同一個次方。');
+  }
+});
+document.getElementById('t1pred').addEventListener('click',()=>{
+  openModal(`<h2>預測一顆新行星</h2><div class="sub">規律要能預測未知，才算規律</div>
+    <p>天王星的平均軌道半徑 R ＝ <b>19.2 AU</b>。<br>用你找到的規律，算出它的公轉週期：</p>
+    <input type="number" id="predIn" placeholder="週期（年）" step="0.1">
+    <div class="foot"><button id="predGo">送出預測</button></div>`);
+  document.getElementById('predGo').onclick=()=>{
+    const v=+document.getElementById('predIn').value;
+    if(!v){toast('先輸入一個數字');return;}
+    const truth=Math.sqrt(Math.pow(19.2,3)); // ≈84.1
+    closeModal();
+    if(Math.abs(v-truth)/truth<0.08){
+      logs.pred=v;
+      prog.l1=true; markDone(1); unlock(2);
+      toast(`✓ 實際約 ${truth.toFixed(1)} 年——你的規律預測了一顆你沒看過的行星`,true);
+      aiPush('bot','（第谷）我留下了資料，你找到了規律。但規律不等於原因——去「規律」那道門，親眼看看軌道長什麼樣子。');
+    }else{
+      toast(`偏差太大（實際約 ${truth.toFixed(1)} 年）。檢查：T² = R³，所以 T = √(R³)`,true);
+    }
+  };
+});
+
+/* ================= 關卡二：POE 與離心率 ================= */
+function openPOE(){
+  openModal(`<h2>先預測，再觀察</h2><div class="sub">POE・預測—觀察—解釋</div>
+    <p>行星從<b>遠日點</b>（離太陽最遠）走到<b>近日點</b>（最近），<br>它的速率會——</p>
+    <div class="opts">
+      <button data-a="變快">變快</button><button data-a="變慢">變慢</button><button data-a="不變">不變</button>
+    </div>
+    <p class="sub">寫一句你的理由（至少 10 字）：</p>
+    <textarea id="poeWhy"></textarea>`);
+  md.querySelectorAll('.opts button').forEach(b=>b.onclick=()=>{
+    const why=(document.getElementById('poeWhy').value||'').trim();
+    if(why.length<10){toast('理由至少 10 個字——把直覺說出口');return;}
+    logs.poe={ans:b.dataset.a,why};
+    closeModal();
+    toast('預測記下了。看著模型——特別注意它經過太陽附近的那一段',true);
+    if(b.dataset.a!=='變快')
+      aiPush('bot','（AI 老師）你預測「'+b.dataset.a+'」。盯著行星經過近日點的那一小段，再回來告訴我你看到了什麼。');
+  });
+}
+document.getElementById('eSl').addEventListener('input',e=>{
+  const nv=+e.target.value;
+  document.getElementById('eV').textContent=nv.toFixed(2);
+  if(Math.abs(nv-L2.e)>0.01){
+    L2.e=nv; rebuildOrbit();
+    logs.eChanges++;
+    if(logs.eChanges>=2&&!logs.l2tasks[2]){
+      logs.l2tasks[2]=true;
+      setTimeout(()=>{toast('✓ 任務③：形狀變了，等面積的規律沒變');l2CheckClear();},2500);
+    }
+  }
+});
+
+/* ================= AI 虛擬教師 ================= */
+const aiPanel=document.getElementById('aiPanel'), aiMsgs=document.getElementById('aiMsgs');
+const aiHistory=[];
+document.getElementById('aiBtn').addEventListener('click',()=>{
+  aiPanel.style.display=aiPanel.style.display==='flex'?'none':'flex';
+  if(aiMsgs.children.length===0) aiPush('sys','AI 老師在此。卡住的時候問我——但我只反問，不給答案。');
+});
+document.getElementById('aiClose').addEventListener('click',()=>aiPanel.style.display='none');
+let aiKey='';
+document.getElementById('aiGear').addEventListener('click',()=>{
+  const r=document.getElementById('aiKeyRow');
+  r.style.display=r.style.display==='none'?'block':'none';
+});
+document.getElementById('aiKeySave').addEventListener('click',()=>{
+  aiKey=document.getElementById('aiKeyIn').value.trim();
+  document.getElementById('aiKeyRow').style.display='none';
+  aiPush('sys',aiKey?'API Key 已套用——現在可以直接問答了。':'已清除 Key，改用內建引導。');
+});
+function aiPush(role,text){ BT.onAI(role,text);
+  aiPanel.style.display='flex';
+  const d=document.createElement('div'); d.className='aim '+role; d.textContent=text;
+  aiMsgs.appendChild(d); aiMsgs.scrollTop=1e5;
+}
+function stateBrief(){
+  const zn=['入口大廳','關卡一：第谷觀測台（從行星資料歸納 T²/R³）','關卡二：克卜勒橢圓廳（焦點、等面積、近日點速率）','關卡三：牛頓發射場（牛頓大砲、圓軌道、同步軌道）','反思展區'][zone];
+  return `目前區域：${zn}。已抄錄 ${logs.collected.length} 顆行星，試算 ${logs.expTries} 次。POE 答案：${logs.poe?logs.poe.ans:'未答'}，關卡二任務 ${logs.l2tasks.filter(Boolean).length}/3。發射 ${logs.launches.length} 次（脫離 ${logs.escapes}、墜毀 ${logs.crashes}），燃料 ${logs.fuel}。任務三：${logs.t3tasks.filter(Boolean).length}/3。進度 L1=${prog.l1} L2=${prog.l2} L3=${prog.l3}`;
+}
+const fallbackHints={
+  0:['三道門依「觀測→規律→原因」的順序走——這也是科學史真實的順序。'],
+  1:['半徑大的行星週期也大，這一步對。問題是：它們成什麼比例？次方可以不一樣。','R 加倍時，T 有跟著加倍嗎？檢查一次就知道是不是簡單比例。'],
+  2:['盯著行星經過太陽附近的那一段——它的速率變了嗎？','地上的扇形色塊每塊面積相等。連線短的時候，要怎樣才掃得出相同面積？'],
+  3:['你要它繞著地球，就代表引力得剛好當成什麼力？','升高軌道之後，它跑得比較快還是比較慢？先觀察再點火。'],
+  4:['看看你的軌道嘗試圖：脫離和墜毀的那幾條，各是哪個參數出了問題？']
+};
+let aiBusy=false;
+async function askAI(userText,hideUser){
+  if(aiBusy) return; aiBusy=true;
+  if(!hideUser) aiPush('user',userText);
+  else aiPush('sys','（正在整理你的學習歷程…）');
+  const typing=document.createElement('div'); typing.className='aim sys'; typing.textContent='思考中…';
+  aiMsgs.appendChild(typing); aiMsgs.scrollTop=1e5;
+  aiHistory.push({role:'user',content:userText});
+  try{
+    const headers={'Content-Type':'application/json'};
+    if(aiKey){
+      headers['x-api-key']=aiKey;
+      headers['anthropic-version']='2023-06-01';
+      headers['anthropic-dangerous-direct-browser-access']='true';
+    }
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers,
+      body:JSON.stringify({
+        model:'claude-sonnet-4-6',max_tokens:1000,
+        system:'你是高中物理 3D 虛擬展間中的 AI 虛擬教師，主題是重力與軌道運動（克卜勒三大定律、萬有引力、牛頓大砲、同步軌道）。嚴格規則：使用繁體中文；蘇格拉底式引導，絕不直接說出答案或規律本身；每次回覆不超過兩句話；以學生目前的處境為素材提問。目前學生狀態：'+stateBrief(),
+        messages:aiHistory.slice(-10)
+      })
+    });
+    const data=await res.json();
+    const text=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n').trim();
+    if(!text) throw new Error('empty');
+    typing.remove(); aiPush('bot',text);
+    aiHistory.push({role:'assistant',content:text});
+  }catch(err){
+    typing.remove();
+    const hs=fallbackHints[zone]||fallbackHints[0];
+    aiPush('bot','（離線引導）'+hs[Math.floor(Math.random()*hs.length)]);
+    if(!window.__aiNoticeShown){
+      window.__aiNoticeShown=true;
+      aiPush('sys','目前連不上 AI，改用內建引導。想要真 AI 問答：在 Claude.ai 中開啟本檔，或按右上角 ⚙ 填入自己的 API Key。');
+    }
+  }
+  aiBusy=false;
+}
+function sendAI(){
+  const v=document.getElementById('aiInput').value.trim();
+  if(!v) return;
+  document.getElementById('aiInput').value='';
+  askAI(v);
+}
+document.getElementById('aiForm').addEventListener('submit',e=>{e.preventDefault();sendAI();});
+document.getElementById('aiInput').addEventListener('keydown',e=>{
+  e.stopPropagation();
+  if(e.key==='Enter'){e.preventDefault();sendAI();}
+});
+document.getElementById('aiKeyIn').addEventListener('keydown',e=>{
+  e.stopPropagation();
+  if(e.key==='Enter'){e.preventDefault();document.getElementById('aiKeySave').click();}
+});
+function aiSummary(){
+  const brief=`請根據以下學習歷程，給這位學生 3 句以內的個人化回饋（指出探究行為的亮點與可深化處，仍不直接教答案）：${stateBrief()}`;
+  askAI(brief,true);
+}
+
+/* ================= 控制 ================= */
+const keys={};
+addEventListener('keydown',e=>{
+  const tag=(e.target.tagName||'').toLowerCase();
+  if(tag==='input'||tag==='textarea') return;
+  keys[e.code]=true;
+  if(e.code.startsWith('Arrow')) e.preventDefault();
+  if(uiOpen) return;
+  if(e.code==='KeyH') goto(0);
+  if(e.code==='KeyE'&&nearInteract) BT.interact(nearInteract);
+});
+addEventListener('keyup',e=>{keys[e.code]=false;});
+let locked=false;
+const isTouch=matchMedia('(pointer: coarse)').matches;
+canvas.addEventListener('click',()=>{if(!isTouch&&!uiOpen)canvas.requestPointerLock();});
+document.addEventListener('pointerlockchange',()=>{locked=document.pointerLockElement===canvas;});
+addEventListener('mousemove',e=>{
+  if(!locked) return;
+  camera.rotation.y-=e.movementX*0.0022;
+  camera.rotation.x-=e.movementY*0.0022;
+  camera.rotation.x=Math.max(-1.35,Math.min(1.35,camera.rotation.x));
+});
+let moveTouch=null,lookTouch=null,moveVec={x:0,y:0};
+canvas.addEventListener('touchstart',e=>{
+  for(const t of e.changedTouches){
+    if(t.clientX<innerWidth/2&&!moveTouch)moveTouch={id:t.identifier,x:t.clientX,y:t.clientY};
+    else if(!lookTouch)lookTouch={id:t.identifier,x:t.clientX,y:t.clientY};
+  }
+},{passive:true});
+canvas.addEventListener('touchmove',e=>{
+  for(const t of e.changedTouches){
+    if(moveTouch&&t.identifier===moveTouch.id){
+      moveVec.x=Math.max(-1,Math.min(1,(t.clientX-moveTouch.x)/60));
+      moveVec.y=Math.max(-1,Math.min(1,(t.clientY-moveTouch.y)/60));
+    }
+    if(lookTouch&&t.identifier===lookTouch.id){
+      camera.rotation.y-=(t.clientX-lookTouch.x)*0.005;
+      camera.rotation.x-=(t.clientY-lookTouch.y)*0.005;
+      camera.rotation.x=Math.max(-1.35,Math.min(1.35,camera.rotation.x));
+      lookTouch.x=t.clientX;lookTouch.y=t.clientY;
+    }
+  }
+},{passive:true});
+canvas.addEventListener('touchend',e=>{
+  for(const t of e.changedTouches){
+    if(moveTouch&&t.identifier===moveTouch.id){moveTouch=null;moveVec={x:0,y:0};}
+    if(lookTouch&&t.identifier===lookTouch.id)lookTouch=null;
+  }
+},{passive:true});
+document.getElementById('prompt').addEventListener('click',()=>{if(nearInteract)BT.interact(nearInteract);});
+document.getElementById('prompt').style.pointerEvents='auto';
+
+/* ================= 主迴圈 ================= */
+const clock=new THREE.Clock();
+const zoneEl=document.getElementById('zoneName');
+const zoneNames=['入口大廳','觀測・第谷的觀測台','規律・克卜勒的橢圓廳','原因・牛頓的發射場','反思展區'];
+let secAccum=[];
+
+function animate(){
+  requestAnimationFrame(animate);
+  const dt=Math.min(clock.getDelta(),0.05), t=clock.elapsedTime;
+
+  if(!uiOpen){
+    const speed=(keys['ShiftLeft']||keys['ShiftRight'])?11:5.2;
+    const lookSpd=1.9;
+    if(keys['ArrowLeft'])  camera.rotation.y+=lookSpd*dt;
+    if(keys['ArrowRight']) camera.rotation.y-=lookSpd*dt;
+    if(keys['ArrowUp'])    camera.rotation.x+=lookSpd*0.8*dt;
+    if(keys['ArrowDown'])  camera.rotation.x-=lookSpd*0.8*dt;
+    camera.rotation.x=Math.max(-1.35,Math.min(1.35,camera.rotation.x));
+    let fw=0,st=0;
+    if(keys['KeyW'])fw+=1; if(keys['KeyS'])fw-=1;
+    if(keys['KeyA'])st-=1; if(keys['KeyD'])st+=1;
+    fw+=-moveVec.y; st+=moveVec.x;
+    const yaw=camera.rotation.y;
+    camera.position.x+=(Math.sin(-yaw)*-fw+Math.cos(yaw)*st)*speed*dt;
+    camera.position.z+=(Math.cos(yaw)*-fw+Math.sin(yaw)*st)*speed*dt;
+    camera.position.y=1.7;
+  }
+
+  const px=camera.position.x, pz=camera.position.z;
+  zone=px<100?0:px<300?1:px<500?2:px<700?3:4;
+  zoneEl.textContent=zoneNames[zone];
+  setZoneUI();
+  if(zone===0){const d=Math.hypot(px,pz);if(d>16.4){camera.position.x*=16.4/d;camera.position.z*=16.4/d;}}
+  if(zone===1){const dx=px-200,d=Math.hypot(dx,pz);if(d>10.4){camera.position.x=200+dx/d*10.4;camera.position.z=pz/d*10.4;}}
+  if(zone===2){camera.position.x=Math.max(400-12.5,Math.min(400+12.5,px));camera.position.z=Math.max(-12.5,Math.min(12.5,pz));}
+  if(zone===3){const dx=px-600,d=Math.hypot(dx,pz);if(d>12.4){camera.position.x=600+dx/d*12.4;camera.position.z=pz/d*12.4;}}
+  if(zone===4){camera.position.x=Math.max(800-8.4,Math.min(800+8.4,px));camera.position.z=Math.max(-8.4,Math.min(8.4,pz));}
+
+  /* 大廳行星弧線 */
+  if(window.__hallPlanet){
+    const a=t*0.25;
+    window.__hallPlanet.position.set(Math.cos(a)*10,6.5+Math.sin(a*1.7)*1.2,Math.sin(a)*10-2);
+    const tr=window.__hallTrail;
+    tr.pts.push(window.__hallPlanet.position.clone()); if(tr.pts.length>40)tr.pts.shift();
+    tr.line.geometry.setFromPoints(tr.pts);
+  }
+
+  /* 關卡二：行星運動＋掃面扇形 */
+  if(L2.ready){
+    const r=L2.a*(1-L2.e*L2.e)/(1+L2.e*Math.cos(L2.nu));
+    L2.nu=(L2.nu+L2.h/(r*r)*dt)%(Math.PI*2);
+    const p=planetLocal(L2.nu);
+    L2.planet.position.copy(p);
+    if(zone===2){
+      // 速率顯示
+      const v=L2.h/r, bars=Math.max(1,Math.min(8,Math.round(v*2.2)));
+      document.getElementById('vBar').textContent='▮'.repeat(bars);
+      // 扇形累積
+      secAccum.push(p.clone());
+      L2.secT+=dt;
+      if(L2.secT>1.4&&secAccum.length>3){
+        L2.secT=0;
+        const focus=V3(L2.a*L2.e,0,0);
+        const verts=[]; 
+        for(let i=0;i<secAccum.length-1;i++){
+          verts.push(focus.x,0.01,focus.z,
+                     secAccum[i].x,0.01,secAccum[i].z,
+                     secAccum[i+1].x,0.01,secAccum[i+1].z);
+        }
+        const geo=new THREE.BufferGeometry();
+        geo.setAttribute('position',new THREE.BufferAttribute(new Float32Array(verts),3));
+        const mesh=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({
+          color:L2.secColor%2?0x8fb8ff:0xffd27a,transparent:true,opacity:0.22,side:THREE.DoubleSide}));
+        L2.orbitG.add(mesh); L2.sectors.push(mesh); L2.secColor++;
+        if(L2.sectors.length>10){const old=L2.sectors.shift();L2.orbitG.remove(old);}
+        secAccum=[secAccum[secAccum.length-1]];
+      }
+      // 近日點觀察：站在觀察台附近且行星在近日點弧段
+      const dPeri=Math.hypot(px-(400+L2.a),pz-0);
+      const nuN=((L2.nu%(Math.PI*2))+Math.PI*2)%(Math.PI*2);
+      if(dPeri<3&&(nuN<0.5||nuN>Math.PI*2-0.5)){
+        L2.periTimer+=dt;
+        if(L2.periTimer>0.3&&!logs.l2tasks[1]){
+          logs.l2tasks[1]=true;
+          toast('✓ 任務②：你看到了——它在近日點衝得最快');
+          aiPush('bot','（克卜勒）你注意到它剛剛加速了嗎？你覺得，是什麼推了它一把？');
+          l2CheckClear();
+        }
+      }else L2.periTimer=0;
+    }else secAccum.length=0;
+  }
+
+  /* 關卡三：軌道模擬 */
+  if(T3.flying){
+    const sub=4, h=dt/sub;
+    for(let s=0;s<sub;s++){
+      const r=Math.hypot(T3.pos.x,T3.pos.y);
+      const acc=-MU/(r*r*r);
+      T3.vel.x+=acc*T3.pos.x*h; T3.vel.y+=acc*T3.pos.y*h;
+      T3.pos.x+=T3.vel.x*h; T3.pos.y+=T3.vel.y*h;
+    }
+    const r=Math.hypot(T3.pos.x,T3.pos.y);
+    T3.ball.position.set(EARTH.x+T3.pos.x,EARTH.y+T3.pos.y,EARTH.z);
+    const ang=Math.atan2(T3.pos.y,T3.pos.x);
+    let dAng=ang-T3.lastAng;
+    if(dAng>Math.PI)dAng-=Math.PI*2; if(dAng<-Math.PI)dAng+=Math.PI*2;
+    T3.swept+=Math.abs(dAng); T3.lastAng=ang;
+    T3.trailPts.push(V3(EARTH.x+T3.pos.x,EARTH.y+T3.pos.y,EARTH.z));
+    if(T3.trailPts.length>700)T3.trailPts.shift();
+    if(T3.trailPts.length%4===0){
+      if(T3.trailLine)scene.remove(T3.trailLine);
+      T3.trailLine=new THREE.Line(new THREE.BufferGeometry().setFromPoints(T3.trailPts),
+        new THREE.LineBasicMaterial({color:0xff9a5c,transparent:true,opacity:0.8}));
+      scene.add(T3.trailLine);
+    }
+    if(r<EARTH.r+0.08){
+      logs.crashes++; toast('墜毀——速率不夠，墜落追上了地面');
+      endFlight('墜毀');
+    }else if(r>13){
+      logs.escapes++; toast('它飛出去了——超過脫離速度，不會回來了');
+      if(logs.escapes===2) aiPush('bot','（牛頓）你已經超過脫離速度了。在放棄之前先想一件事：要它「繞」著地球，引力得剛好當成什麼力？');
+      endFlight('脫離');
+    }else if(T3.swept>Math.PI*2.05){
+      t3Check();
+      T3.swept=0; // 繼續繞，但只判定一次一圈
+    }
+  }
+
+  /* 互動提示 */
+  nearInteract=null;
+  for(const it of interactables){
+    if(it.zone!==zone) continue;
+    if(Math.hypot(px-it.x,pz-it.z)<it.r){nearInteract=it;break;}
+  }
+  const pr=document.getElementById('prompt');
+  if(nearInteract&&!uiOpen){pr.style.display='block';pr.textContent='按 E：'+nearInteract.label;}
+  else pr.style.display='none';
+
+  renderer.render(scene,camera);
+}
+
+/* ================= 啟動 ================= */
+document.getElementById('startBtn').addEventListener('click',()=>{
+  document.getElementById('intro').classList.add('hide');
+  goto(0);
+  setTimeout(()=>toast('「你眼前的這條路徑，人類花了兩千年才弄懂它的形狀。今天你要走一遍他們走過的路。」',true),700);
+  if(!isTouch) canvas.requestPointerLock();
+});
+addEventListener('resize',()=>{
+  camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth,innerHeight);
+});
+goto(0);
+animate();
+})();
+</script>
+</body>
+</html>
