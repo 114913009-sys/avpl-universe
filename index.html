@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AVPL遨遊宇宙</title>
+<style>
+  :root{--bg:#05070f;--ink:#e6eefb;--dim:#8ea3c4;--panel:rgba(12,18,36,.86);--line:rgba(120,170,255,.2);--gold:#ffd27a;--ok:#8ef0b0}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{background:#05070f}
+  body{background:radial-gradient(ellipse at 50% 0%,#0f1830 0%,#05070f 60%) fixed;color:var(--ink);min-height:100vh;
+    font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;line-height:1.6}
+  .wrap{max-width:1080px;margin:0 auto;padding:36px 16px 60px}
+  .eyebrow{font-size:12px;letter-spacing:.35em;color:var(--gold)}
+  h1{font-family:"Noto Serif TC","PMingLiU",serif;font-size:clamp(28px,5vw,40px);letter-spacing:.08em;margin:6px 0 4px}
+  .lead{color:var(--dim);font-size:14.5px;max-width:720px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px 18px}
+  .stu{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:22px 0 8px}
+  .stu label{font-size:12px;color:var(--dim);letter-spacing:.1em}
+  .stu input{background:#0a1224;border:1px solid var(--line);border-radius:3px;color:var(--ink);padding:8px 10px;font-size:14px;width:120px;font-family:inherit}
+  .stu input#sName{width:160px}
+  button{font-family:inherit;cursor:pointer}
+  .btn{background:transparent;border:1px solid var(--line);color:var(--ink);border-radius:3px;padding:8px 14px;font-size:13.5px;letter-spacing:.05em}
+  .btn.pri{border-color:var(--gold);color:var(--gold)}
+  .btn:hover{border-color:var(--gold)}
+  .hall{margin-top:30px}
+  .hall h2{font-family:"Noto Serif TC",serif;font-size:21px;letter-spacing:.12em;display:flex;align-items:baseline;gap:12px}
+  .hall h2 small{font-family:"Noto Sans TC",sans-serif;font-size:12px;color:var(--dim);letter-spacing:.1em;font-weight:400}
+  .rooms{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:10px}
+  @media (max-width:760px){.rooms{grid-template-columns:1fr}}
+  .room{position:relative;display:flex;flex-direction:column;gap:6px;padding:16px 16px 14px;border-radius:6px;background:var(--panel);
+    border:1px solid var(--line);color:inherit;text-decoration:none;transition:border-color .2s,transform .2s}
+  .room:hover{border-color:var(--acc);transform:translateY(-2px)}
+  .room .no{font-size:11px;letter-spacing:.25em;color:var(--dim)}
+  .room .door{font-family:"Noto Serif TC",serif;font-size:26px;letter-spacing:.2em;color:var(--acc)}
+  .room .nm{font-size:15px}
+  .room .sb{font-size:12.5px;color:var(--dim);flex:1}
+  .room .stt{font-size:12px;color:var(--dim);border-top:1px solid var(--line);padding-top:7px;display:flex;justify-content:space-between}
+  .room .stt.done{color:var(--ok)}
+  .actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+  .codes{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px;margin-top:10px}
+  .code{display:flex;gap:10px;align-items:flex-start;font-size:13px}
+  .code b{flex:none;display:inline-block;min-width:34px;text-align:center;border-radius:3px;color:#fff;font-size:12px;padding:1px 0;margin-top:2px}
+  .code span{color:var(--dim)}
+  .sec{margin-top:36px}
+  .sec h3{font-size:12px;letter-spacing:.3em;color:var(--dim);margin-bottom:8px}
+  .teacher{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;align-items:center}
+  .teacher p{font-size:13.5px;color:var(--dim);max-width:640px}
+  .ov{position:fixed;inset:0;z-index:50;background:rgba(4,6,12,.8);display:none;align-items:flex-start;justify-content:center;overflow:auto;padding:20px 10px}
+  .ov.show{display:flex}
+  .pfwrap{width:min(820px,100%);background:#fff;border-radius:4px;overflow:hidden}
+  .pfbar{position:sticky;top:0;display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;padding:10px 12px;background:#1d2433}
+  .pfbar span{flex:1;color:#cfd8ea;font-size:13px;align-self:center}
+  .pfbar button{padding:7px 14px;border-radius:3px;border:1px solid #cfd8ea;background:transparent;color:#fff;font-size:13px}
+  .pfbar button.pri{background:#ffd27a;color:#1d2433;border-color:#ffd27a}
+  .note{font-size:12px;color:var(--dim);margin-top:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">AVPL・AI 虛擬教師引導探究</div>
+  <h1>AVPL遨遊宇宙</h1>
+  <div style="font-family:'Noto Serif TC',serif;font-size:clamp(16px,2.6vw,21px);letter-spacing:.1em;color:var(--gold);margin-bottom:10px">AI教師引導下的宇宙物理的四大基本力探索</div>
+  <p class="lead">重力、電磁力、強力與弱力——宇宙的四大基本力，分成三個主題、九間展間。每一間都是一個完整的探究：讀展板、動手實驗、問 AI 老師，最後在反思展區寫下你的想法。每次進入展間，你的探究歷程都會留下紀錄，可以匯出成學習歷程 PDF。</p>
+
+  <div class="stu card" id="stuBox">
+    <label>班級</label><input id="sCls" placeholder="例：201">
+    <label>座號</label><input id="sSeat" placeholder="例：7" inputmode="numeric">
+    <label>姓名</label><input id="sName" placeholder="可留空">
+    <button class="btn pri" id="sSave">儲存</button>
+    <span id="sMsg" style="font-size:12.5px;color:var(--ok)"></span>
+  </div>
+
+  <div id="halls"></div>
+
+  <div class="sec">
+    <h3>我的學習歷程</h3>
+    <div class="card">
+      <div id="sum" style="font-size:14px"></div>
+      <div class="actions">
+        <button class="btn pri" id="pfAll">預覽／下載全部學習歷程 PDF</button>
+        <button class="btn" id="jsonAll">下載行為資料（交給老師）</button>
+        <button class="btn" id="clearAll" style="margin-left:auto;color:#ff9a7a;border-color:rgba(255,154,122,.4)">清除這台裝置的紀錄</button>
+      </div>
+      <div class="note">紀錄存在這台裝置的瀏覽器裡。換電腦或清除瀏覽資料前，請先下載行為資料交給老師。</div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <h3>七種探究行為（展間自動編碼）</h3>
+    <div class="card"><div class="codes" id="codes"></div></div>
+  </div>
+
+  <div class="sec">
+    <h3>教師端</h3>
+    <div class="card teacher">
+      <p>匯入全班的行為資料，做高／低成就組的滯後序列分析（LSA）：轉移次數、調整後殘差 z 值、顯著轉移圖，並檢核「探究循環」與「漫遊」兩種模式。</p>
+      <a class="btn pri" href="lsa.html" style="text-decoration:none">開啟滯後序列分析 →</a>
+    </div>
+  </div>
+</div>
+
+<div class="ov" id="pfOv"><div class="pfwrap"><div class="pfbar"><span>學習歷程預覽（全部展間）</span>
+  <button id="pfPrint">列印</button><button class="pri" id="pfDl">下載 PDF</button><button id="pfClose">關閉</button></div>
+  <div id="pfBody"></div></div></div>
+
+<script>
+/* ====================================================================
+   BTCore — 九間展間共用核心：行為編碼定義、展間清單、本機儲存、
+   學習歷程檔案（HTML → PDF）、資料匯出。
+   index.html、九個展間、lsa.html 共用同一份。
+   ==================================================================== */
+(function(){
+'use strict';
+
+const CODES=[
+  {k:'RD',zh:'閱讀展板',color:'#4f7fe0',desc:'注視展板、閱讀人物對話或說明文字'},
+  {k:'EX',zh:'操作實驗',color:'#e8962a',desc:'調整參數、按下實驗按鈕、抄錄／蒐集資料'},
+  {k:'AI',zh:'AI 對話',color:'#9b62e6',desc:'開啟 AI 老師、提問、請求回饋'},
+  {k:'NV',zh:'空間導航',color:'#4fa594',desc:'走動、環顧、傳送、進出展區'},
+  {k:'OB',zh:'觀察模型',color:'#22aec4',desc:'靜止注視 3D 模型或正在運行的模擬'},
+  {k:'RF',zh:'反思回顧',color:'#3fae55',desc:'作答與解釋、POE 預測理由、寫反思札記、回顧紀錄牆'},
+  {k:'ID',zh:'閒置',color:'#8a8f99',desc:'超過 10 秒沒有任何操作，或離開頁面'}
+];
+const CODE_KEYS=CODES.map(c=>c.k);
+const CODE_MAP=Object.fromEntries(CODES.map(c=>[c.k,c]));
+
+const HALLS={
+  gravity:{zh:'重力與軌道',accent:'#ffd27a'},
+  em:{zh:'電流磁效應',accent:'#ffb35c'},
+  nuclear:{zh:'強力與弱力',accent:'#b0a4ff'}
+};
+const ROOMS=[
+  {id:'G1',hall:'gravity',level:1,door:'觀測',name:'第谷的觀測台',file:'gravity-1-observe.html',
+   sub:'從六顆行星的資料，找出一個不隨行星改變的量'},
+  {id:'G2',hall:'gravity',level:2,door:'規律',name:'克卜勒的橢圓廳',file:'gravity-2-pattern.html',
+   sub:'太陽在哪裡？近日點為什麼比較快？'},
+  {id:'G3',hall:'gravity',level:3,door:'原因',name:'牛頓的發射場',file:'gravity-3-cause.html',
+   sub:'把砲彈打成衛星，再送上同步軌道'},
+  {id:'E1',hall:'em',level:1,door:'意外',name:'厄斯特的講堂',file:'em-1-accident.html',
+   sub:'1820 年那根動了一下的磁針'},
+  {id:'E2',hall:'em',level:2,door:'規律',name:'走進磁場',file:'em-2-pattern.html',
+   sub:'繞著通電直導線走一圈，走進螺線管的中心'},
+  {id:'E3',hall:'em',level:3,door:'應用',name:'法拉第的工坊',file:'em-3-application.html',
+   sub:'電磁起重機與自己會轉的導線'},
+  {id:'N1',hall:'nuclear',level:1,door:'謎題',name:'拉塞福的空曠原子',file:'nuclear-1-puzzle.html',
+   sub:'縮小十四個數量級，走到原子核門口'},
+  {id:'N2',hall:'nuclear',level:2,door:'膠水',name:'湯川的介子工坊',file:'nuclear-2-glue.html',
+   sub:'親手蓋原子核：質子、中子與強力'},
+  {id:'N3',hall:'nuclear',level:3,door:'變身',name:'費米的衰變室',file:'nuclear-3-transform.html',
+   sub:'β 衰變與點亮太陽的弱力'}
+];
+const ROOM_MAP=Object.fromEntries(ROOMS.map(r=>[r.id,r]));
+
+/* ---------- 儲存 ---------- */
+const LS={student:'bt9_student',sessions:'bt9_sessions'};
+function sget(k,def){try{const v=localStorage.getItem(k);return v?JSON.parse(v):def;}catch(e){return def;}}
+function sset(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true;}catch(e){return false;}}
+function getStudent(){return sget(LS.student,null);}
+function setStudent(s){
+  const st={cls:String(s.cls||'').trim(),seat:String(s.seat||'').trim(),name:String(s.name||'').trim()};
+  st.id=st.cls&&st.seat?`${st.cls}-${st.seat.padStart(2,'0')}`:'';
+  sset(LS.student,st); return st;
+}
+function getSessions(){return sget(LS.sessions,[]);}
+function saveSession(s){
+  const all=getSessions(); const i=all.findIndex(x=>x.id===s.id);
+  if(i>=0) all[i]=s; else all.push(s);
+  if(!sset(LS.sessions,all)){ // 空間不足：丟掉最舊場次的原始事件，保留摘要
+    all.forEach(x=>{ if(x!==s && x.events) x.events=[]; });
+    sset(LS.sessions,all);
+  }
+}
+function clearAll(){try{localStorage.removeItem(LS.sessions);}catch(e){}}
+
+/* ---------- 工具 ---------- */
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const mmss=ms=>{ms=Math.max(0,ms|0);const s=Math.round(ms/1000);return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;};
+const fmtDate=iso=>{if(!iso)return '—';const d=new Date(iso);return `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;};
+
+/* episodes → 代碼序列（LSA 用） */
+function seqOf(session,opt){
+  opt=opt||{};
+  let eps=(session.episodes||[]).filter(e=>CODE_MAP[e.c]);
+  if(opt.minMs) eps=eps.filter(e=>(e.t1-e.t0)>=opt.minMs || e.n>1 || ['EX','AI','RF'].includes(e.c));
+  let seq;
+  if(opt.sampleMs){ seq=[]; eps.forEach(e=>{const k=Math.max(1,Math.round((e.t1-e.t0)/opt.sampleMs)); for(let i=0;i<k;i++) seq.push(e.c);}); }
+  else seq=eps.map(e=>e.c);
+  if(opt.excludeID) seq=seq.filter(c=>c!=='ID');
+  if(opt.merge!==false&&!opt.sampleMs){const m=[];seq.forEach(c=>{if(m[m.length-1]!==c)m.push(c);});seq=m;}
+  return seq;
+}
+function durations(session){
+  const d=Object.fromEntries(CODE_KEYS.map(k=>[k,0]));
+  (session.episodes||[]).forEach(e=>{if(d[e.c]!=null)d[e.c]+=Math.max(0,e.t1-e.t0);});
+  return d;
+}
+function transCounts(seqs){
+  const n=CODE_KEYS.length, M=Array.from({length:n},()=>Array(n).fill(0));
+  seqs.forEach(seq=>{for(let i=0;i<seq.length-1;i++){
+    const a=CODE_KEYS.indexOf(seq[i]), b=CODE_KEYS.indexOf(seq[i+1]);
+    if(a>=0&&b>=0) M[a][b]++;
+  }});
+  return M;
+}
+
+/* ---------- 學習歷程檔案 ---------- */
+const PF_CSS=`
+.pf{font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;color:#1d2433;background:#fff;width:760px;margin:0 auto;padding:28px 34px;line-height:1.65;font-size:13px}
+.pf h1{font-family:"Noto Serif TC","PMingLiU",serif;font-size:26px;letter-spacing:.08em;margin:0 0 4px}
+.pf h2{font-family:"Noto Serif TC","PMingLiU",serif;font-size:19px;letter-spacing:.06em;margin:0 0 2px;color:#1d2433}
+.pf h3{font-size:13px;letter-spacing:.18em;color:#5a6680;margin:16px 0 6px;border-bottom:1px solid #dfe4ee;padding-bottom:3px}
+.pf .pf-eyebrow{font-size:11px;letter-spacing:.3em;color:#8a6a1f;margin-bottom:6px}
+.pf .pf-meta{font-size:12px;color:#5a6680}
+.pf .pf-meta b{color:#1d2433}
+.pf table{border-collapse:collapse;width:100%;font-size:12px}
+.pf td,.pf th{border:1px solid #dfe4ee;padding:4px 7px;text-align:left;vertical-align:top}
+.pf th{background:#f3f5fa;font-weight:600;color:#3a4560}
+.pf .pf-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0}
+.pf .pf-cell{border:1px solid #dfe4ee;border-radius:4px;padding:7px 9px;font-size:12px}
+.pf .pf-cell b{display:block;font-size:13px}
+.pf .pf-done{border-color:#3fae55;background:#f1faf3}
+.pf .pf-tag{display:inline-block;font-size:11px;padding:0 6px;border-radius:3px;color:#fff;margin-right:4px}
+.pf .pf-bar{display:flex;align-items:center;gap:8px;margin:3px 0;font-size:12px}
+.pf .pf-bar span.l{width:112px;white-space:nowrap}
+.pf .pf-bar span.t{width:70px;text-align:right;color:#5a6680}
+.pf .pf-bar i{display:block;height:10px;border-radius:2px}
+.pf .pf-strip{display:flex;height:16px;border-radius:3px;overflow:hidden;margin:6px 0 2px;border:1px solid #dfe4ee}
+.pf .pf-strip i{display:block;height:100%}
+.pf .pf-legend{font-size:11px;color:#5a6680}
+.pf .pf-legend span{margin-right:10px;white-space:nowrap}
+.pf .pf-legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:3px;vertical-align:-1px}
+.pf .pf-q{margin:6px 0 10px}
+.pf .pf-q .q{font-weight:600}
+.pf .pf-q .a{white-space:pre-wrap;border-left:3px solid #dfe4ee;padding:2px 9px;margin-top:3px;color:#2b3550}
+.pf .pf-empty{color:#9aa3b5}
+.pf .pf-ai{font-size:12px;margin:3px 0}
+.pf .pf-ai.user b{color:#8a6a1f}
+.pf .pf-ai.bot b{color:#5b3fa0}
+.pf .pf-session{border-top:3px solid #1d2433;padding-top:14px;margin-top:22px}
+.pf .pf-break{page-break-before:always;break-before:page}
+.pf .pf-avoid{page-break-inside:avoid;break-inside:avoid}
+.pf .pf-foot{margin-top:18px;font-size:10.5px;color:#9aa3b5;border-top:1px solid #dfe4ee;padding-top:6px}
+`;
+
+function legendHTML(){
+  return `<div class="pf-legend">${CODES.map(c=>`<span><i style="background:${c.color}"></i>${c.k} ${c.zh}</span>`).join('')}</div>`;
+}
+function behaviorHTML(sessions){
+  const d=Object.fromEntries(CODE_KEYS.map(k=>[k,0]));
+  sessions.forEach(s=>{const x=durations(s);CODE_KEYS.forEach(k=>d[k]+=x[k]);});
+  const tot=Object.values(d).reduce((a,b)=>a+b,0)||1;
+  const max=Math.max(...Object.values(d),1);
+  const bars=CODES.map(c=>`<div class="pf-bar"><span class="l"><span class="pf-tag" style="background:${c.color}">${c.k}</span>${c.zh}</span>
+    <i style="width:${Math.round(d[c.k]/max*390)}px;background:${c.color}"></i><span class="t">${mmss(d[c.k])}（${Math.round(d[c.k]/tot*100)}%）</span></div>`).join('');
+  // 序列條（只畫第一個場次或單場次）
+  let strip='';
+  if(sessions.length===1){
+    const s=sessions[0], eps=s.episodes||[];
+    const T=Math.max(1,(eps.length?eps[eps.length-1].t1:0)-(eps.length?eps[0].t0:0));
+    strip=`<div class="pf-strip">${eps.map(e=>`<i title="${e.c}" style="width:${Math.max(0.15,(e.t1-e.t0)/T*100)}%;background:${(CODE_MAP[e.c]||{}).color||'#ccc'}"></i>`).join('')}</div>
+      <div class="pf-meta">時間軸（左→右）：每一段顏色代表你當時在做的事</div>`;
+  }
+  // 最常見轉移
+  const M=transCounts(sessions.map(s=>seqOf(s)));
+  const list=[];
+  CODE_KEYS.forEach((a,i)=>CODE_KEYS.forEach((b,j)=>{if(M[i][j]>0)list.push({a,b,n:M[i][j]});}));
+  list.sort((x,y)=>y.n-x.n);
+  const top=list.slice(0,5).map(x=>`<span class="pf-tag" style="background:${CODE_MAP[x.a].color}">${x.a}</span>→<span class="pf-tag" style="background:${CODE_MAP[x.b].color};margin-left:4px">${x.b}</span> ${x.n} 次`).join('　');
+  return `<div class="pf-avoid">${bars}${strip}${legendHTML()}
+    <div style="margin-top:8px;font-size:12px"><b>你最常出現的行為接續：</b>${top||'<span class="pf-empty">（紀錄太少）</span>'}</div></div>`;
+}
+
+function sessionHTML(s,opt){
+  const r=ROOM_MAP[s.room]||{door:'',name:s.room,hall:''};
+  const hall=HALLS[r.hall]||{zh:''};
+  const ach=(s.achievements||[]);
+  const ans=(s.answers||[]);
+  const rf=s.reflection||{};
+  const qs=(s.reflectQs||[]);
+  const ai=(s.ai||[]).filter(m=>m.role==='user'||m.role==='bot').slice(-24);
+  const dur=s.durMs||((s.episodes||[]).length?s.episodes[s.episodes.length-1].t1:0);
+  return `<section class="pf-session ${opt&&opt.breakBefore?'pf-break':''}">
+    <div class="pf-eyebrow">${esc(hall.zh)}・第 ${r.level||''} 間</div>
+    <h2>${esc(r.door)}・${esc(r.name)}</h2>
+    <div class="pf-meta">進入時間 <b>${fmtDate(s.start)}</b>　停留 <b>${mmss(dur)}</b>　狀態 <b>${s.done?'已完成本展間任務':'尚未完成'}</b></div>
+
+    <h3>任務歷程</h3>
+    ${ach.length?`<table><tr><th style="width:62px">時間</th><th>達成</th></tr>${ach.map(a=>`<tr><td>${mmss(a.t)}</td><td>${esc(a.msg)}</td></tr>`).join('')}</table>`:'<div class="pf-empty">（尚無達成紀錄）</div>'}
+
+    <h3>我的預測與作答</h3>
+    ${ans.length?ans.map(a=>`<div class="pf-q pf-avoid"><div class="q">${esc(a.q||'問題')}　<span class="pf-meta">${mmss(a.t)}</span></div>
+      <div class="a">我的選擇：${esc(a.a)}${a.why?`\n我的理由：${esc(a.why)}`:''}</div></div>`).join(''):'<div class="pf-empty">（尚無作答）</div>'}
+
+    <h3>反思札記</h3>
+    ${qs.length?qs.map((q,i)=>`<div class="pf-q pf-avoid"><div class="q">${i+1}. ${esc(q)}</div><div class="a">${rf['q'+(i+1)]?esc(rf['q'+(i+1)]):'<span class="pf-empty">（未填寫）</span>'}</div></div>`).join(''):'<div class="pf-empty">（尚未撰寫）</div>'}
+
+    <div class="pf-avoid"><h3>我的探究行為</h3>
+    ${behaviorHTML([s])}</div>
+
+    <h3>與 AI 老師的對話</h3>
+    ${ai.length?ai.map(m=>`<div class="pf-ai ${m.role}"><b>${m.role==='user'?'我':'AI 老師'}：</b>${esc(m.text)}</div>`).join(''):'<div class="pf-empty">（這次沒有和 AI 老師對話）</div>'}
+  </section>`;
+}
+
+function portfolioHTML(sessions,student,opt){
+  opt=opt||{};
+  student=student||{};
+  const st=`<div class="pf-meta">班級 <b>${esc(student.cls||'—')}</b>　座號 <b>${esc(student.seat||'—')}</b>　姓名 <b>${esc(student.name||'—')}</b>　匯出時間 <b>${fmtDate(new Date().toISOString())}</b></div>`;
+  let cover='';
+  if(opt.cover){
+    const byRoom={};
+    sessions.forEach(s=>{(byRoom[s.room]=byRoom[s.room]||[]).push(s);});
+    cover=`<div class="pf-eyebrow">AVPL遨遊宇宙・AI教師引導下的宇宙物理的四大基本力探索</div>
+      <h1>我的探究學習歷程</h1>${st}
+      <h3>九間展間完成概況</h3>
+      <div class="pf-grid">${ROOMS.map(r=>{const ss=byRoom[r.id]||[];const done=ss.some(x=>x.done);
+        const t=ss.reduce((a,x)=>a+(x.durMs||0),0);
+        return `<div class="pf-cell ${done?'pf-done':''}"><span class="pf-meta">${HALLS[r.hall].zh}・${r.level}</span><b>${r.door}・${r.name}</b>${ss.length?`${done?'✓ 已完成':'進行中'}・${mmss(t)}`:'<span class="pf-empty">未進入</span>'}</div>`;}).join('')}</div>
+      <h3>全部展間的探究行為</h3>${behaviorHTML(sessions)}`;
+  }else{
+    cover=`<div class="pf-eyebrow">AVPL遨遊宇宙・學習歷程檔案</div><h1>我的探究學習歷程</h1>${st}`;
+  }
+  const body=sessions.map((s,i)=>sessionHTML(s,{breakBefore:opt.cover||i>0})).join('');
+  return `<div class="pf">${cover}${body}
+    <div class="pf-foot">行為代碼說明：${CODES.map(c=>`${c.k}＝${c.zh}（${c.desc}）`).join('；')}。紀錄由展間自動產生，僅供學習回顧與研究分析。</div></div>`;
+}
+
+/* ---------- 匯出 ---------- */
+function loadScript(src){return new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s);});}
+function ensurePFStyle(){
+  if(document.getElementById('pf-style')) return;
+  const st=document.createElement('style'); st.id='pf-style'; st.textContent=PF_CSS; document.head.appendChild(st);
+}
+function printHTML(html,title){
+  const w=window.open('','_blank');
+  if(!w){alert('瀏覽器擋下了新視窗，請允許彈出視窗後再試一次。');return;}
+  w.document.write(`<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><title>${esc(title||'學習歷程')}</title>
+    <style>${PF_CSS}@page{size:A4;margin:12mm}body{margin:0;background:#fff}.pf{width:auto;padding:0}</style></head><body>${html}</body></html>`);
+  w.document.close();
+  setTimeout(()=>{try{w.focus();w.print();}catch(e){}},500);
+}
+async function exportPDF(el,filename){
+  try{
+    if(!window.html2pdf) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js');
+    const sx=window.scrollX, sy=window.scrollY, ov=el.closest('.ov,.bt-ov'), osy=ov?ov.scrollTop:0;
+    window.scrollTo(0,0); if(ov) ov.scrollTop=0;
+    try{ await window.html2pdf().set({
+      margin:[8,6,10,6], filename:filename||'學習歷程.pdf',
+      image:{type:'jpeg',quality:0.95},
+      html2canvas:{scale:2,backgroundColor:'#ffffff',useCORS:true,scrollX:0,scrollY:0},
+      jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
+      pagebreak:{mode:['css','legacy'],before:'.pf-break',avoid:'.pf-avoid'}
+    }).from(el).save(); } finally { window.scrollTo(sx,sy); if(ov) ov.scrollTop=osy; }
+    return true;
+  }catch(e){
+    console.warn('html2pdf 失敗，改用列印',e);
+    printHTML(el.outerHTML,filename);
+    return false;
+  }
+}
+function download(text,filename,type){
+  const b=new Blob([text],{type:type||'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=filename;
+  document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},800);
+}
+function exportJSON(student,sessions){
+  const data={format:'bt9-behavior-log',version:1,exportedAt:new Date().toISOString(),
+    codes:CODES.map(c=>({k:c.k,zh:c.zh,desc:c.desc})),student,sessions};
+  download(JSON.stringify(data),`行為紀錄_${(student&&student.id)||'未登錄'}_${new Date().toISOString().slice(0,10)}.json`);
+}
+
+window.BTCore={CODES,CODE_KEYS,CODE_MAP,HALLS,ROOMS,ROOM_MAP,LS,
+  getStudent,setStudent,getSessions,saveSession,clearAll,
+  esc,mmss,fmtDate,seqOf,durations,transCounts,
+  PF_CSS,portfolioHTML,sessionHTML,ensurePFStyle,exportPDF,printHTML,download,exportJSON};
+})();
+
+</script>
+<script>
+(function(){
+const C=window.BTCore, $=id=>document.getElementById(id);
+const st=C.getStudent()||{};
+$('sCls').value=st.cls||''; $('sSeat').value=st.seat||''; $('sName').value=st.name||'';
+$('sSave').onclick=()=>{
+  if(!$('sCls').value.trim()||!$('sSeat').value.trim()){ $('sMsg').style.color='#ff9a7a'; $('sMsg').textContent='請填班級和座號'; return; }
+  const s=C.setStudent({cls:$('sCls').value,seat:$('sSeat').value,name:$('sName').value});
+  $('sMsg').style.color='var(--ok)'; $('sMsg').textContent='✓ 已儲存（'+s.id+'）';
+};
+function render(){
+  const ss=C.getSessions();
+  const html=Object.entries(C.HALLS).map(([hk,h])=>{
+    const rooms=C.ROOMS.filter(r=>r.hall===hk);
+    return `<section class="hall"><h2>${h.zh}<small>${rooms.map(r=>r.door).join('・')}</small></h2><div class="rooms">${
+      rooms.map(r=>{
+        const mine=ss.filter(s=>s.room===r.id), done=mine.some(s=>s.done), t=mine.reduce((a,s)=>a+(s.durMs||0),0);
+        return `<a class="room" href="${r.file}" style="--acc:${h.accent}">
+          <span class="no">${r.id}・第 ${r.level} 間</span><span class="door">${r.door}</span>
+          <span class="nm">${r.name}</span><span class="sb">${r.sub}</span>
+          <span class="stt ${done?'done':''}"><span>${mine.length?(done?'✓ 已完成':'進行中'):'未進入'}</span><span>${mine.length?C.mmss(t)+'・'+mine.length+' 次':''}</span></span></a>`;
+      }).join('')}</div></section>`;
+  }).join('');
+  $('halls').innerHTML=html;
+  const done=new Set(ss.filter(s=>s.done).map(s=>s.room)).size;
+  const tot=ss.reduce((a,s)=>a+(s.durMs||0),0);
+  $('sum').innerHTML=ss.length?`已進入 <b>${new Set(ss.map(s=>s.room)).size}</b> 間、完成 <b>${done}</b> / 9 間，總探究時間 <b>${C.mmss(tot)}</b>，共 ${ss.length} 次造訪。`:'還沒有任何紀錄——從上面任一間開始吧。';
+}
+$('codes').innerHTML=C.CODES.map(c=>`<div class="code"><b style="background:${c.color}">${c.k}</b><div>${c.zh}<br><span>${c.desc}</span></div></div>`).join('');
+render();
+addEventListener('pageshow',render);
+
+$('pfAll').onclick=()=>{
+  const ss=C.getSessions().slice().sort((a,b)=>C.ROOMS.findIndex(r=>r.id===a.room)-C.ROOMS.findIndex(r=>r.id===b.room)||(a.start<b.start?-1:1));
+  if(!ss.length){alert('還沒有紀錄。');return;}
+  C.ensurePFStyle();
+  $('pfBody').innerHTML=C.portfolioHTML(ss,C.getStudent(),{cover:true});
+  $('pfOv').classList.add('show');
+};
+$('pfClose').onclick=()=>$('pfOv').classList.remove('show');
+const fn=()=>`學習歷程_全部展間_${(C.getStudent()||{}).id||'未登錄'}.pdf`;
+$('pfPrint').onclick=()=>C.printHTML($('pfBody').innerHTML,fn());
+$('pfDl').onclick=async()=>{const b=$('pfDl');b.textContent='產生中…';b.disabled=true;
+  await C.exportPDF($('pfBody').querySelector('.pf'),fn()); b.textContent='下載 PDF'; b.disabled=false;};
+$('jsonAll').onclick=()=>{const ss=C.getSessions(); if(!ss.length){alert('還沒有紀錄。');return;} C.exportJSON(C.getStudent(),ss);};
+$('clearAll').onclick=()=>{ if(confirm('確定清除這台裝置上的所有展間紀錄？（建議先下載行為資料）')){C.clearAll();render();} };
+})();
+</script>
+</body>
+</html>
