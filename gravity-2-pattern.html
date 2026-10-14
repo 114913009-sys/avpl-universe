@@ -1630,8 +1630,10 @@ function animate(){
     if(keys['KeyA'])st-=1; if(keys['KeyD'])st+=1;
     fw+=-moveVec.y; st+=moveVec.x;
     const yaw=camera.rotation.y;
-    camera.position.x+=(Math.sin(-yaw)*-fw+Math.cos(yaw)*st)*speed*dt;
-    camera.position.z+=(Math.cos(yaw)*-fw+Math.sin(yaw)*st)*speed*dt;
+    // 依目前視角（yaw）計算前進／右移方向：three.js 相機預設看向 -Z
+    // forward = (-sin yaw, 0, -cos yaw)；right = (cos yaw, 0, -sin yaw)
+    camera.position.x+=(-Math.sin(yaw)*fw+Math.cos(yaw)*st)*speed*dt;
+    camera.position.z+=(-Math.cos(yaw)*fw-Math.sin(yaw)*st)*speed*dt;
     camera.position.y=1.7;
   }
 
