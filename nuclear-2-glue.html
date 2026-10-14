@@ -918,7 +918,7 @@ function valleyN(Z){ return Z + Math.max(0, 0.016*Z*Z - 6.4); }
 function nucStable(Z,N){
   const A=Z+N;
   if(Z<1) return {ok:false,why:'沒有質子就不是元素'};
-  if(A<2) return {ok:false,why:'單一質子是氫——多加點東西吧'};
+  if(Z===1&&N===0) return {ok:true,why:'穩定',note:'孤立的單一質子就是氫-1 的原子核，非常穩定（實驗下限壽命超過 10³⁴ 年）'};
   if(Z>=84) return {ok:false,why:'太大了——膠水到極限（Z≥84 無穩定核）'};
   const diff=N-valleyN(Z), tol=1+0.06*Z;
   if(diff>tol) return {ok:false,why:'中子過多',beta:'minus',sev:diff-tol};
@@ -1095,7 +1095,7 @@ function l2Evaluate(){
   nameEl.innerHTML=`<b>${elemName(Z)}-${A}</b>（Z=${Z}，N=${N}）`;
   const v=nucStable(Z,N); L2.lastVerdict=v;
   const vd=document.getElementById('verdict');
-  if(v.ok){vd.innerHTML='<b style="color:var(--ok)">穩定 ✓</b>';
+  if(v.ok){vd.innerHTML='<b style="color:var(--ok)">穩定 ✓</b>'+(v.note?'——'+v.note:'');
     document.getElementById('stabBar').style.width='100%';
     document.getElementById('stabBar').style.background='var(--ok)';
   }else{
