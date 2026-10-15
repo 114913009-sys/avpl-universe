@@ -123,6 +123,11 @@
   }
 /* 提示訊息需顯示在對話框之上（例如 POE 理由不足時的提醒） */
 #toast{position:fixed;z-index:95!important;pointer-events:none}
+/* 任務燈號：完成即亮綠燈 */
+.tk{display:flex;gap:8px;align-items:flex-start;margin-top:5px;transition:color .3s}
+.tk .lamp{flex:0 0 11px;height:11px;margin-top:4px;border-radius:50%;background:#2c2c3c;border:1px solid #6a6a80;transition:all .3s}
+.tk.done{color:#8ef0b0}
+.tk.done .lamp{background:#3ddc84;border-color:#3ddc84;box-shadow:0 0 8px #3ddc84,0 0 2px #fff inset}
 </style>
 </head>
 <body>
@@ -190,6 +195,12 @@
   <div class="readout" id="verdict">—</div>
   <div class="row"><label>顯示強力範圍殼</label><button id="shellTg">開</button></div>
   <button id="uranium" style="width:100%">挑戰：鈾-238</button>
+  <div class="records">任務：
+    <div class="tk" data-tk="2-0"><i class="lamp"></i><span>① 只用兩顆質子蓋氦——試試看</span></div>
+    <div class="tk" data-tk="2-1"><i class="lamp"></i><span>② 蓋出穩定的氦-4</span></div>
+    <div class="tk" data-tk="2-2"><i class="lamp"></i><span>③ 蓋出碳-12</span></div>
+    <div class="tk" data-tk="2-3"><i class="lamp"></i><span>④ 蓋出 Z≥24 的穩定核</span></div>
+  </div>
   <div class="records" id="buildRec"></div>
 </div>
 
@@ -202,6 +213,10 @@
   <div class="readout" id="decayVerdict">狀態：不穩定（中子過多）</div>
   <button id="betaBtn" class="primary" style="width:100%">β⁻ 衰變（弱力：讓一顆中子變身）</button>
   <div class="records" id="decayRec"></div>
+  <div class="records">本關目標：
+    <div class="tk" data-tk="3-0"><i class="lamp"></i><span>① 衰變診療：讓核落入穩定谷</span></div>
+    <div class="tk" data-tk="3-1"><i class="lamp"></i><span>② 點亮太陽：讓兩顆質子融合</span></div>
+  </div>
 </div>
 
 <!-- 關卡三：太陽點火台 -->
@@ -213,6 +228,10 @@
   <button id="collideBtn" class="primary" style="width:100%">讓兩顆質子對撞</button>
   <div class="readout" id="sunOut">狀態：太陽是暗的</div>
   <div class="records" id="sunRec"></div>
+  <div class="records">本關目標：
+    <div class="tk" data-tk="3-0"><i class="lamp"></i><span>① 衰變診療：讓核落入穩定谷</span></div>
+    <div class="tk" data-tk="3-1"><i class="lamp"></i><span>② 點亮太陽：讓兩顆質子融合</span></div>
+  </div>
 </div>
 
 <div id="modalBack"><div id="modal"></div></div>
@@ -1475,7 +1494,16 @@ function endingRecap(){
 /* ================= 進度／傳送 ================= */
 const spawns=[{x:0,z:8},{x:200,z:12},{x:400,z:9},{x:600,z:9},{x:800,z:6}];
 let _uiZone=-1,_p3Shown='';
+/* 任務燈號：完成即亮綠燈（每格畫面檢查，狀態改變才更新） */
+const TASK_GROUPS=[['2',()=>logs.l2tasks],['3',()=>[prog.decayDone,prog.sunDone]]];
+let _tkSig='';
+function renderTaskLamps(){
+  const sig=TASK_GROUPS.map(([k,f])=>(f()||[]).map(Number).join('')).join('|');
+  if(sig===_tkSig) return; _tkSig=sig;
+  TASK_GROUPS.forEach(([k,f])=>(f()||[]).forEach((d,i)=>document.querySelectorAll('[data-tk="'+k+'-'+i+'"]').forEach(el=>el.classList.toggle('done',!!d))));
+}
 function setZoneUI(){
+  renderTaskLamps();
   if(zone===_uiZone) return; _uiZone=zone; _p3Shown='';
   document.getElementById('p2').style.display=(zone===2)?'block':'none';
   document.getElementById('p3a').style.display='none';
