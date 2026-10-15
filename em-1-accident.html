@@ -141,6 +141,11 @@
   }
 /* 提示訊息需顯示在對話框之上（例如 POE 理由不足時的提醒） */
 #toast{position:fixed;z-index:95!important;pointer-events:none}
+/* 任務燈號：完成即亮綠燈 */
+.tk{display:flex;gap:8px;align-items:flex-start;margin-top:5px;transition:color .3s}
+.tk .lamp{flex:0 0 11px;height:11px;margin-top:4px;border-radius:50%;background:#2c2c3c;border:1px solid #6a6a80;transition:all .3s}
+.tk.done{color:#8ef0b0}
+.tk.done .lamp{background:#3ddc84;border-color:#3ddc84;box-shadow:0 0 8px #3ddc84,0 0 2px #fff inset}
 </style>
 </head>
 <body>
@@ -214,6 +219,17 @@
   <div class="records" id="b1rec">（通電一次記一筆）</div>
 </div>
 
+<!-- 關卡二：任務清單 -->
+<div class="sidePanel" id="p2task">
+  <h3>走進磁場・任務</h3>
+  <div class="records">
+    <div class="tk" data-tk="2-0"><i class="lamp"></i><span>① 繞載流柱走一圈</span></div>
+    <div class="tk" data-tk="2-1"><i class="lamp"></i><span>② 站在柱旁抬頭看</span></div>
+    <div class="tk" data-tk="2-2"><i class="lamp"></i><span>③ 走進螺線管中心</span></div>
+    <div class="tk" data-tk="2-3"><i class="lamp"></i><span>④ 按 R 反轉電流</span></div>
+  </div>
+</div>
+
 <!-- 關卡三：起重機面板 -->
 <div class="sidePanel" id="p3a">
   <h3>電磁起重機・目標：吊起 5 kg</h3>
@@ -226,6 +242,10 @@
   <button id="cGo" class="primary" style="width:100%">啟動吊掛（耗電＝電流值）</button>
   <div class="readout" id="cOut">磁力計：—</div>
   <div class="records" id="cRec">（每次嘗試都會記錄）</div>
+  <div class="records">本關目標：
+    <div class="tk" data-tk="3-0"><i class="lamp"></i><span>① 電磁起重機吊起 5 kg</span></div>
+    <div class="tk" data-tk="3-1"><i class="lamp"></i><span>② 讓馬達自己轉 10 秒</span></div>
+  </div>
 </div>
 
 <!-- 關卡三：馬達面板 -->
@@ -237,6 +257,10 @@
   <button id="mGo" class="primary" style="width:100%">通電</button>
   <div class="readout" id="mOut">狀態：未通電</div>
   <div class="records" id="mRec"></div>
+  <div class="records">本關目標：
+    <div class="tk" data-tk="3-0"><i class="lamp"></i><span>① 電磁起重機吊起 5 kg</span></div>
+    <div class="tk" data-tk="3-1"><i class="lamp"></i><span>② 讓馬達自己轉 10 秒</span></div>
+  </div>
 </div>
 
 <!-- 模態框 -->
@@ -1293,9 +1317,19 @@ function buildL4Boards(){
 /* ================= 進度／傳送 ================= */
 const spawns=[{x:0,z:8},{x:200,z:8.5},{x:400,z:10},{x:600,z:9.5},{x:800,z:6}];
 let _uiZone=-1, _p3Shown='';
+/* 任務燈號：完成即亮綠燈（每格畫面檢查，狀態改變才更新） */
+const TASK_GROUPS=[['2',()=>logs.l2.tasks],['3',()=>[prog.craneDone,prog.motorDone]]];
+let _tkSig='';
+function renderTaskLamps(){
+  const sig=TASK_GROUPS.map(([k,f])=>(f()||[]).map(Number).join('')).join('|');
+  if(sig===_tkSig) return; _tkSig=sig;
+  TASK_GROUPS.forEach(([k,f])=>(f()||[]).forEach((d,i)=>document.querySelectorAll('[data-tk="'+k+'-'+i+'"]').forEach(el=>el.classList.toggle('done',!!d))));
+}
 function setZoneUI(){
+  renderTaskLamps();
   if(zone===_uiZone) return; _uiZone=zone; _p3Shown='';
   document.getElementById('p1').style.display  = (zone===1)?'block':'none';
+  document.getElementById('p2task').style.display = (zone===2)?'block':'none';
   document.getElementById('p3a').style.display = 'none';
   document.getElementById('p3b').style.display = 'none';
   document.getElementById('flipBtn').style.display = (zone===2)?'block':'none';
