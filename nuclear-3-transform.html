@@ -1055,8 +1055,8 @@ const L2={cx:400,cz:0,nucleons:[],shellOn:true,lineSeg:null,repSeg:null,shellMes
     '交換一種未知粒子，因而互相吸引——',
     '而且這種力只能傳到 10⁻¹⁵ 公尺。',
     '十二年後，介子在宇宙線中被找到。',
-    '1949 年，他成為亞洲第一位',
-    '諾貝爾物理獎得主。',
+    '1949 年，他成為日本第一位',
+    '諾貝爾獎得主。',
     '','他在你們這個年紀時，',
     '教科書上也沒有答案。'],'#ffcf7a'),400,2.3,-12.8,0,4.4,3.2);
   board(makeBoardTexture('操作規則',[
@@ -1337,7 +1337,7 @@ document.getElementById('collideBtn').addEventListener('click',()=>{
   L3.sunP1.visible=L3.sunP2.visible=true;
 });
 function openSunPOE(){
-  openModal(`<h2>先預測</h2><div class="sub">太陽核心・一億五千萬度</div>
+  openModal(`<h2>先預測</h2><div class="sub">太陽核心・約一千五百萬度</div>
     <p>兩顆質子以極高速度撞在一起。<br>它們會黏住嗎？</p>
     <div class="opts">
       <button data-a="會">會黏住</button><button data-a="不會">不會，彈開</button>
@@ -1572,7 +1572,7 @@ function coulombRead(){
   logs.couRead=true;
   openModal(`<h2>庫侖力表</h2><div class="sub">距離 10⁻¹⁵ m 的兩顆質子</div>
     <p>讀數：斥力約 <b style="font-size:22px;color:var(--red)">230 牛頓</b></p>
-    <p>230 N 是你拎起一箱瓶裝水的力。<br>現在把這個力，加在一顆比灰塵還小十兆倍的粒子上。</p>
+    <p>230 N 是你拎起一箱瓶裝水的力。<br>現在把這個力，加在一顆直徑只有 10⁻¹⁵ 公尺（比灰塵小十億倍以上）的粒子上。</p>
     <p><b>按照你學過的一切，這兩顆質子早該以近光速互相彈飛。</b><br>可是眼前的它們，安安穩穩地靠在一起。</p>
     <div class="foot"><button>所以問題是——</button></div>`);
   md.querySelector('.foot button').onclick=closeModal;
