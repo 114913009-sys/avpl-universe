@@ -216,7 +216,7 @@
 <!-- 關卡三：發射控制台 -->
 <div class="sidePanel" id="p3">
   <h3>牛頓的發射控制台</h3>
-  <div class="row"><label>發射高度 r＝<span id="rV">2.0</span></label><input type="range" id="rSl" min="1.6" max="6" step="0.1" value="2.0"></div>
+  <div class="row"><label>發射高度 r＝<span id="rV">2.0</span> 萬公里</label><input type="range" id="rSl" min="1.6" max="6" step="0.1" value="2.0"></div>
   <div class="row"><label>發射速率 v＝<span id="vV">3.00</span></label><input type="range" id="vSl" min="1" max="6" step="0.05" value="3.00"></div>
   <div>燃料 <span id="fV">100</span></div>
   <div class="budget"><i id="fBar" style="width:100%"></i></div>
@@ -225,8 +225,8 @@
   <div class="records" id="t3task">
     任務：
     <div class="tk" data-tk="3-0"><i class="lamp"></i><span>① 牛頓大砲：讓砲彈繞地球一整圈</span></div>
-    <div class="tk" data-tk="3-1"><i class="lamp"></i><span>② 圓軌道：進入目標環（r≈3）誤差 5% 內</span></div>
-    <div class="tk" data-tk="3-2"><i class="lamp"></i><span>③ 同步軌道：r≈4.2、週期 24 小時</span></div>
+    <div class="tk" data-tk="3-1"><i class="lamp"></i><span>② 圓軌道：進入目標環（r≈3 萬公里）誤差 5% 內</span></div>
+    <div class="tk" data-tk="3-2"><i class="lamp"></i><span>③ 同步軌道：r≈4.2 萬公里、週期約 23 時 56 分</span></div>
   </div>
   <div class="records" id="t3rec"></div>
 </div>
@@ -1073,7 +1073,7 @@ function planetLocal(nu){
 }
 
 /* ================= 場景 3：牛頓的發射場 (600,0) ================= */
-const MU=25, EARTH={x:600,y:7,z:-6,r:1.2};
+const MU=25, EARTH={x:600,y:7,z:-6,r:0.64}; // 長度單位：萬公里（地球半徑 6400 km＝0.64；同步軌道 42 164 km≈4.2，約 6.6 倍地球半徑）
 const T3={flying:false,pos:null,vel:null,swept:0,lastAng:0,trailPts:[],trailLine:null,
           curA:0,curE:0,launchInfo:null};
 (function buildL3(){
@@ -1093,8 +1093,8 @@ const T3={flying:false,pos:null,vel:null,swept:0,lastAng:0,trailPts:[],trailLine
     t.position.set(EARTH.x,EARTH.y,EARTH.z); scene.add(t); return t;
   };
   mk(3.0,0x8ef0b0); mk(4.2,0xffd27a);
-  labelSprite('目標環 r=3',EARTH.x+3.4,EARTH.y+3.0,EARTH.z,'#8ef0b0',2.0);
-  labelSprite('同步軌道 r=4.2',EARTH.x-4.6,EARTH.y+4.2,EARTH.z,'#ffd27a',2.6);
+  labelSprite('目標環 r=3 萬公里',EARTH.x+3.4,EARTH.y+3.0,EARTH.z,'#8ef0b0',2.0);
+  labelSprite('同步軌道 r=4.2 萬公里',EARTH.x-4.6,EARTH.y+4.2,EARTH.z,'#ffd27a',2.6);
   // 高塔與大砲
   const tower=new THREE.Mesh(new THREE.BoxGeometry(0.6,3.4,0.6),new THREE.MeshStandardMaterial({color:0x2e3a56,roughness:0.8}));
   tower.position.set(605,1.7,4); scene.add(tower);
@@ -1111,7 +1111,7 @@ const T3={flying:false,pos:null,vel:null,swept:0,lastAng:0,trailPts:[],trailLine
   T3.ball=new THREE.Mesh(new THREE.SphereGeometry(0.13,10,8),new THREE.MeshBasicMaterial({color:0xff9a5c}));
   T3.ball.visible=false; scene.add(T3.ball);
 })();
-const hoursK=24/(2*Math.PI*Math.sqrt(Math.pow(4.2,3)/MU));
+const hoursK=23.93/(2*Math.PI*Math.sqrt(Math.pow(4.2,3)/MU)); // 同步軌道週期＝一個恆星日 86 164 s ≈ 23.93 h
 function orbitForecast(r0,v){
   const eps=v*v/2-MU/r0;
   if(eps>=0) return {open:true};
@@ -1169,7 +1169,7 @@ function t3Check(){
   if(!logs.t3tasks[1] && Math.abs(f.a-3)/3<0.05 && f.e<0.12){
     logs.t3tasks[1]=true;toast('✓ 任務②：目標圓軌道進入成功');}
   if(!logs.t3tasks[2] && Math.abs(f.a-4.2)/4.2<0.05 && f.e<0.12){
-    logs.t3tasks[2]=true;toast('✓ 任務③：同步軌道！週期 ≈ 24 小時',true);
+    logs.t3tasks[2]=true;toast('✓ 任務③：同步軌道！週期 ≈ 23 時 56 分（一個恆星日）',true);
     setTimeout(openGeoQuiz,1400);
   }
 }
@@ -1179,7 +1179,7 @@ function openGeoQuiz(){
     <p>你剛把衛星送進了同步軌道。<br>為什麼「跟地球自轉同步」的圓軌道<b>只有一個高度</b>？</p>
     <div class="opts" style="flex-direction:column">
       <button data-a="0">因為那個高度的引力剛好消失</button>
-      <button data-a="1">因為圓軌道的週期只由半徑決定——要 24 小時，就只有一個半徑</button>
+      <button data-a="1">因為圓軌道的週期只由半徑決定——要和地球自轉同步，就只有一個半徑</button>
       <button data-a="2">因為再高就會被大氣層拖慢</button>
     </div>`);
   md.querySelectorAll('.opts button').forEach(b=>b.onclick=()=>{
