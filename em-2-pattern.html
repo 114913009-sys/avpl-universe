@@ -245,6 +245,7 @@
   <div class="records">本關目標：
     <div class="tk" data-tk="3-0"><i class="lamp"></i><span>① 電磁起重機吊起 5 kg</span></div>
     <div class="tk" data-tk="3-1"><i class="lamp"></i><span>② 讓馬達自己轉 10 秒</span></div>
+    <div class="tk" data-tk="3-2"><i class="lamp"></i><span>③ 1831：把磁變回電</span></div>
   </div>
 </div>
 
@@ -260,6 +261,22 @@
   <div class="records">本關目標：
     <div class="tk" data-tk="3-0"><i class="lamp"></i><span>① 電磁起重機吊起 5 kg</span></div>
     <div class="tk" data-tk="3-1"><i class="lamp"></i><span>② 讓馬達自己轉 10 秒</span></div>
+    <div class="tk" data-tk="3-2"><i class="lamp"></i><span>③ 1831：把磁變回電</span></div>
+  </div>
+</div>
+
+<!-- 關卡三：電磁感應面板 -->
+<div class="sidePanel" id="p3c">
+  <h3>1831・把磁變回電</h3>
+  <div style="font-size:11px;color:var(--ink-dim);margin-bottom:8px">（拖動滑桿＝把磁棒推進／拉出線圈）</div>
+  <div class="row"><label>磁棒位置</label><input type="range" id="iPos" min="0" max="100" value="0"></div>
+  <div class="row"><label>朝向線圈的磁極</label><button id="iPol">N 極</button></div>
+  <div class="readout" id="iOut">檢流計：0（指針在中央）</div>
+  <div class="records" id="iRec">（推入、拉出、停在線圈裡、翻面再推——每種都看一次）</div>
+  <div class="records">本關目標：
+    <div class="tk" data-tk="3-0"><i class="lamp"></i><span>① 電磁起重機吊起 5 kg</span></div>
+    <div class="tk" data-tk="3-1"><i class="lamp"></i><span>② 讓馬達自己轉 10 秒</span></div>
+    <div class="tk" data-tk="3-2"><i class="lamp"></i><span>③ 1831：把磁變回電</span></div>
   </div>
 </div>
 
@@ -973,7 +990,7 @@ const cross=(a,b)=>V3(a.y*b.z-a.z*b.y, a.z*b.x-a.x*b.z, a.x*b.y-a.y*b.x);
 const dirLabel=(v)=> Math.abs(v.x)>Math.abs(v.z) ? (v.x>0?'東':'西') : (v.z>0?'南':'北');
 
 /* ================= 全域狀態 ================= */
-const prog={l1:false,l2:false,l3:false, craneDone:false, motorDone:false};
+const prog={l1:false,l2:false,l3:false, craneDone:false, motorDone:false, inductDone:false};
 let zone=0, uiOpen=false;
 window.__BT_state=()=>({zone,uiOpen});
 let currentSign=1;
@@ -1256,6 +1273,125 @@ const L3={cx:600,cz:0, coreOn:false, budget:100, craneFails:0,
   labelSprite('讓它自己轉起來',L3.cx+7,6,L3.cz+1,'#5fd8ff',3.2,false);
   l3ApplyMotor();
 })();
+/* --- 1831 電磁感應站（北側，1821 展板前） --- */
+L3.ind={pos:0,target:0,pol:1,galv:0,still:0,asked:false,txt:'',obs:{in:false,out:false,still:false,flip:false},rec:{}};
+logs.induct=[];
+(function buildInduct(){
+  const X=L3.cx, Z=L3.cz-7;
+  board(makeBoardTexture('1831・把磁變回電',[
+    '1820 年，厄斯特讓電變出了磁。',
+    '1821 年，法拉第在筆記裡寫下：',
+    '「把磁轉變為電。」',
+    '他試了十年。磁鐵放在線圈旁，',
+    '檢流計的指針始終不動。',
+    '','1831 年，他終於發現自己漏看了什麼。',
+    '拖動面板滑桿，把磁棒推進、拉出線圈，',
+    '盯著檢流計的指針。'],'#5fd8ff'), L3.cx+6.6,2.2,L3.cz-12.8,0);
+  // 線圈（軸沿 x）
+  const coil=new THREE.Group();
+  for(let i=0;i<7;i++){
+    const t=new THREE.Mesh(new THREE.TorusGeometry(0.5,0.06,10,28),
+      new THREE.MeshStandardMaterial({color:0xb5652a,roughness:0.4,emissive:0x000000}));
+    t.rotation.y=Math.PI/2; t.position.x=-0.6+i*0.2; coil.add(t);
+  }
+  coil.position.set(X,1.3,Z); scene.add(coil); L3.indCoil=coil;
+  const stand=new THREE.Mesh(new THREE.BoxGeometry(5.8,0.8,1.2),new THREE.MeshStandardMaterial({color:0x4a3320,roughness:0.9}));
+  stand.position.set(X-0.6,0.4,Z); scene.add(stand);
+  // 磁棒（紅＝N、藍＝S；朝線圈那半邊的顏色＝朝向線圈的磁極）
+  const mag=new THREE.Group();
+  const halfA=new THREE.Mesh(new THREE.BoxGeometry(0.6,0.28,0.28),new THREE.MeshStandardMaterial({color:0xd94a3a,roughness:0.5}));
+  const halfB=new THREE.Mesh(new THREE.BoxGeometry(0.6,0.28,0.28),new THREE.MeshStandardMaterial({color:0x3a6ad9,roughness:0.5}));
+  halfA.position.x=0.3; halfB.position.x=-0.3; mag.add(halfA,halfB);
+  mag.position.set(X-3.2,1.3,Z); scene.add(mag);
+  L3.indMag=mag; L3.indFront=halfA; L3.indBack=halfB;
+  // 檢流計
+  const gb=new THREE.Mesh(new THREE.BoxGeometry(1.0,1.0,0.3),new THREE.MeshStandardMaterial({color:0x2c3340,roughness:0.7}));
+  gb.position.set(X+2.4,1.35,Z); scene.add(gb);
+  const face=new THREE.Mesh(new THREE.CircleGeometry(0.42,32),new THREE.MeshBasicMaterial({color:0xe8e2cf}));
+  face.position.set(X+2.4,1.35,Z+0.16); scene.add(face);
+  const tick=new THREE.Mesh(new THREE.BoxGeometry(0.02,0.1,0.01),new THREE.MeshBasicMaterial({color:0x333333}));
+  tick.position.set(X+2.4,1.71,Z+0.17); scene.add(tick);
+  const piv=new THREE.Group(); piv.position.set(X+2.4,1.05,Z+0.18);
+  const needle=new THREE.Mesh(new THREE.BoxGeometry(0.03,0.62,0.01),new THREE.MeshBasicMaterial({color:0xc0392b}));
+  needle.position.y=0.31; piv.add(needle); scene.add(piv); L3.needle=piv;
+  const w1=new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.02,1.9,6),new THREE.MeshStandardMaterial({color:0xb5652a}));
+  w1.rotation.z=Math.PI/2; w1.position.set(X+1.3,0.85,Z); scene.add(w1);
+  labelSprite('法拉第的線圈・1831',X,3.4,Z,'#5fd8ff',3.0,false);
+  labelSprite('檢流計',X+2.4,2.2,Z,'#dfe8f2',1.3,false);
+  indApplyPol();
+})();
+function indApplyPol(){
+  const I=L3.ind;
+  L3.indFront.material.color.set(I.pol>0?0xd94a3a:0x3a6ad9);
+  L3.indBack.material.color.set(I.pol>0?0x3a6ad9:0xd94a3a);
+  document.getElementById('iPol').textContent=I.pol>0?'N 極':'S 極';
+}
+function indRecord(msg){
+  const I=L3.ind; if(I.rec[msg]) return; I.rec[msg]=1; logs.induct.push(msg);
+  const rec=document.getElementById('iRec'), n=Object.keys(I.rec).length;
+  if(n===1) rec.innerHTML='';
+  const d=document.createElement('div'); d.textContent=n+'. '+msg; rec.appendChild(d); rec.scrollTop=1e4;
+  if(n===3) aiPush('bot','（法拉第）指針只在某些時刻動。磁棒「待在線圈裡」和磁棒「正在進出」——哪一個才讓指針動？');
+}
+function indObserve(cur,rate,dt){
+  const I=L3.ind, o=I.obs, a=Math.abs(cur);
+  let txt;
+  if(a>0.12){
+    const side=cur>0?'右':'左', pole=I.pol>0?'N':'S', act=rate>0?'推入':'拉出';
+    txt=`檢流計：<b>指針向${side}偏</b>`;
+    indRecord(`${pole} 極朝線圈・${act} → 指針向${side}偏`);
+    if(rate>0) o.in=true; else o.out=true;
+    if(I.pol<0) o.flip=true;
+    I.still=0;
+  }else{
+    txt='檢流計：0（指針在中央）';
+    if(I.pos>0.9&&Math.abs(rate)<1e-3&&o.in){
+      I.still+=dt;
+      if(I.still>1.5&&!o.still){o.still=true; indRecord('磁棒停在線圈裡 → 指針回到 0');}
+    }else I.still=0;
+  }
+  if(txt!==I.txt){I.txt=txt; document.getElementById('iOut').innerHTML=txt;}
+  if(o.in&&o.out&&o.still&&o.flip&&!I.asked&&!prog.inductDone){I.asked=true; setTimeout(openLenzQuiz,1200);}
+}
+function openLenzQuiz(){
+  if(prog.inductDone) return;
+  openModal(`<h2>冷次的問題</h2><div class="sub">1833・感應電流的方向</div>
+    <p>你看到了：只有在<b>磁棒進出線圈</b>的時候，指針才會動。<br>那麼，把磁棒的 <b>N 極推向線圈</b>時，感應電流會讓線圈靠近磁棒的那一端變成——</p>
+    <div class="opts" style="flex-direction:column">
+      <button data-a="0">S 極——把磁棒吸進來，幫它一把</button>
+      <button data-a="1">N 極——把磁棒推回去，抵抗它靠近</button>
+      <button data-a="2">不會有磁極——感應電流不會產生磁場</button>
+    </div>`);
+  md.querySelectorAll('.opts button').forEach(b=>b.onclick=()=>{
+    closeModal();
+    if(b.dataset.a==='1'){
+      prog.inductDone=true;
+      toast('✓ 感應電流總是抵抗「磁場的變化」——這就是冷次定律',true);
+      setTimeout(()=>{
+        openModal(`<h2>把磁變回電</h2><div class="sub">1831 法拉第・1833 冷次</div>
+          <p>1820 年厄斯特讓電變出了磁；1831 年，法拉第終於讓磁變回了電。關鍵不是「有磁」，而是<b>通過線圈的磁力線數目在改變</b>——這就是<b>電磁感應</b>，產生的電流叫<b>感應電流</b>。</p>
+          <p>1833 年，冷次補上了方向：<b>感應電流產生的磁場，總是抵抗線圈內磁力線數目的變化</b>（冷次定律）。</p>
+          <p>今天的<b>交流發電機</b>（線圈在磁場中旋轉）和<b>電磁爐</b>（變動的磁場在鍋底感應出電流而發熱），都是這個發現的後代。</p>
+          <div class="foot"><button id="indOk">繼續</button></div>`);
+        document.getElementById('indOk').onclick=()=>{
+          closeModal();
+          if(!(prog.craneDone&&prog.motorDone)) toast('電磁感應完成——起重機和馬達也完成後即可通關');
+          l3Final();
+        };
+      },1600);
+    }else{
+      toast(b.dataset.a==='0'?'如果線圈幫它一把，磁棒會越推越快、電流越來越大——能量從哪裡來？':'檢流計的指針動了，代表線圈裡有電流；有電流，就有磁場',true);
+      aiPush('bot','（冷次）想像線圈「不喜歡改變」：磁棒的 N 極越靠越近，線圈要怎麼做，才能阻止通過它的磁力線變多？（想好了再到線圈前按 E 作答）');
+    }
+  });
+}
+function l3Final(){
+  if(prog.l3||!(prog.craneDone&&prog.motorDone&&prog.inductDone)) return;
+  prog.l3=true; markDone(3); unlock(4);
+  toast('★ 「應用」完成——反思展區之門已開啟',true);
+}
+document.getElementById('iPos').addEventListener('input',e=>{L3.ind.target=(+e.target.value)/100;});
+document.getElementById('iPol').addEventListener('click',()=>{L3.ind.pol*=-1; indApplyPol();});
 function l3ApplyMotor(){
   L3.magnet.position.set(L3.cx+7+(L3.magCenter?0:1.2), L3.magCenter?1.55:0.35+1.0, L3.cz+1);
   if(!L3.magCenter) L3.magnet.position.y=1.35;
@@ -1318,7 +1454,7 @@ function buildL4Boards(){
 const spawns=[{x:0,z:8},{x:200,z:8.5},{x:400,z:10},{x:600,z:9.5},{x:800,z:6}];
 let _uiZone=-1, _p3Shown='';
 /* 任務燈號：完成即亮綠燈（每格畫面檢查，狀態改變才更新） */
-const TASK_GROUPS=[['2',()=>logs.l2.tasks],['3',()=>[prog.craneDone,prog.motorDone]]];
+const TASK_GROUPS=[['2',()=>logs.l2.tasks],['3',()=>[prog.craneDone,prog.motorDone,prog.inductDone]]];
 let _tkSig='';
 function renderTaskLamps(){
   const sig=TASK_GROUPS.map(([k,f])=>(f()||[]).map(Number).join('')).join('|');
@@ -1332,6 +1468,7 @@ function setZoneUI(){
   document.getElementById('p2task').style.display = (zone===2)?'block':'none';
   document.getElementById('p3a').style.display = 'none';
   document.getElementById('p3b').style.display = 'none';
+  document.getElementById('p3c').style.display = 'none';
   document.getElementById('flipBtn').style.display = (zone===2)?'block':'none';
   document.getElementById('currentState').style.display = (zone===2)?'block':'none';
 }
@@ -1384,6 +1521,12 @@ const interactables=[
     if(prog.l2) toast('已通過——應用之門開著');
     else if(logs.l2.tasks.every(Boolean)) openL2Quiz();
     else toast('先完成四個任務：繞柱一圈・抬頭看・進螺線管・按 R');
+  }},
+  {x:600,z:-5.2,r:2.6,zone:3,label:'回答：冷次的問題',act:()=>{
+    const o=L3.ind.obs;
+    if(prog.inductDone) toast('已完成——指針的秘密你已經知道了');
+    else if(!(o.in&&o.out&&o.still&&o.flip)) toast('先把四種情況都試過：推入、拉出、停在線圈裡、翻面再推');
+    else openLenzQuiz();
   }},
   {x:800,z:0,r:1.9,zone:4,label:'請 AI 老師給我個人回饋',act:aiSummary},
   {x:800,z:-4,r:1.9,zone:4,label:'反思札記與學習歷程',act:()=>BT.reflect()},
@@ -1576,13 +1719,13 @@ document.getElementById('mGo').addEventListener('click',()=>{
     if(L3.motorFails===2) aiPush('bot','（法拉第）想讓力持續作用，電流的迴路必須「一邊轉、一邊保持接通」。液態的導體能做到固態做不到的事。');
   }
 });
-function l3Clear(){
-  prog.l3=true; markDone(3); unlock(4);
+function l3Clear(){ // 起重機＋馬達都完成：播放 1821 馬達故事，然後檢查是否全部通關
+  if(L3.storyShown){l3Final();return;} L3.storyShown=true;
   openModal(`<h2>它自己轉起來了</h2><div class="sub">1821・史上第一顆電動馬達</div>
     <canvas id="histCv" width="380" height="230"></canvas>
     <p>你剛剛組出來的，和法拉第 1821 年 9 月在皇家研究院地下室做出的裝置，是同一個原理：<b>載流導線在磁場中受力</b>。懸垂的導線一邊通電、一邊讓末端浸在液態金屬裡保持迴路——力就能持續推著它繞磁鐵旋轉。</p>
     <p>兩百年後，地球上每一顆馬達，都是它的後代。</p>
-    <div class="foot"><button id="histOk">前往反思展區之門已開啟</button></div>`);
+    <div class="foot"><button id="histOk">下一站 ▸</button></div>`);
   const g=document.getElementById('histCv').getContext('2d');
   g.strokeStyle='#8ea3c4'; g.lineWidth=2.5;
   g.strokeRect(120,150,140,60);                      // 杯
@@ -1592,7 +1735,9 @@ function l3Clear(){
   g.beginPath(); g.arc(190,160,46,0.4,2.4); g.stroke(); // 旋轉軌跡
   g.fillStyle='#8ea3c4'; g.font='15px sans-serif';
   g.fillText('液態金屬',126,200); g.fillText('磁鐵',204,86); g.fillText('懸垂導線（旋轉）',216,40);
-  document.getElementById('histOk').onclick=closeModal;
+  document.getElementById('histOk').onclick=()=>{closeModal();
+    if(!prog.inductDone) toast('最後一站：往北走到「法拉第的線圈」——1831 年，他把磁變回了電',true);
+    l3Final();};
 }
 
 /* ================= AI 虛擬教師 ================= */
@@ -1619,14 +1764,14 @@ function aiPush(role,text){ BT.onAI(role,text);
   aiMsgs.appendChild(d); aiMsgs.scrollTop=1e5;
 }
 function stateBrief(){
-  const zn=['入口大廳','關卡一：厄斯特的講堂（歸納電流方向/導線位置與磁針偏轉的規律）','關卡二：走進磁場（巨柱導線＋螺線管）','關卡三：法拉第工坊（電磁鐵吊重＋1821馬達）','反思展區'][zone];
-  return `目前區域：${zn}。關卡一紀錄數：${logs.l1.length}。關卡二任務：${logs.l2.tasks.filter(Boolean).length}/4，POE 答案：${logs.l2.poe?logs.l2.poe.ans:'未答'}。起重嘗試：${logs.crane.length} 次（鐵芯目前${L3.coreOn?'已裝':'未裝'}），馬達嘗試：${logs.motor.length} 次。進度：L1=${prog.l1} L2=${prog.l2} L3=${prog.l3}`;
+  const zn=['入口大廳','關卡一：厄斯特的講堂（歸納電流方向/導線位置與磁針偏轉的規律）','關卡二：走進磁場（巨柱導線＋螺線管）','關卡三：法拉第工坊（電磁鐵吊重＋1821馬達＋1831電磁感應）','反思展區'][zone];
+  return `目前區域：${zn}。關卡一紀錄數：${logs.l1.length}。關卡二任務：${logs.l2.tasks.filter(Boolean).length}/4，POE 答案：${logs.l2.poe?logs.l2.poe.ans:'未答'}。起重嘗試：${logs.crane.length} 次（鐵芯目前${L3.coreOn?'已裝':'未裝'}），馬達嘗試：${logs.motor.length} 次。電磁感應觀察 ${(logs.induct||[]).length} 種，冷次問題${prog.inductDone?'已答對':'未完成'}。進度：L1=${prog.l1} L2=${prog.l2} L3=${prog.l3}`;
 }
 const fallbackHints={
   0:['三道門依「意外→規律→應用」的順序走——這也是科學史真實的順序。'],
   1:['先固定一個條件、只改另一個，兩筆紀錄的對照才有意義。','「推開」不是方向。往東還是往西？把方向寫進你的規律裡。'],
   2:['站著不動是看不出場的形狀的——繞著柱子走一圈。','用右手握住想像中的柱：拇指沿電流，四指的方向就在你身邊的箭頭上。'],
-  3:['空心的線圈裡面，放什麼會讓磁場集中幾十倍？','要讓力「持續」作用，迴路必須一邊轉一邊保持接通——液態的導體做得到。'],
+  3:['空心的線圈裡面，放什麼會讓磁場集中幾十倍？','要讓力「持續」作用，迴路必須一邊轉一邊保持接通——液態的導體做得到。','磁棒停在線圈裡的時候，指針在做什麼？「有磁」和「磁在變」，哪一個才是關鍵？'],
   4:['回頭看你的熱區圖：你在哪裡停留最久？那裡多半就是你學到最多的地方。']
 };
 let aiBusy=false;
@@ -1648,7 +1793,7 @@ async function askAI(userText, hideUser){
       method:'POST', headers,
       body:JSON.stringify({
         model:'claude-sonnet-4-6', max_tokens:1000,
-        system:'你是高中物理 3D 虛擬展間中的 AI 虛擬教師，主題是電流磁效應（厄斯特發現、安培右手定則、電磁鐵與法拉第馬達）。嚴格規則：使用繁體中文；蘇格拉底式引導，絕不直接說出答案或規律本身；每次回覆不超過兩句話；以學生目前的處境為素材提問。目前學生狀態：'+stateBrief(),
+        system:'你是高中物理 3D 虛擬展間中的 AI 虛擬教師，主題是電流磁效應與電磁感應（厄斯特發現、安培右手定則、電磁鐵與法拉第馬達、法拉第電磁感應、冷次定律）。嚴格規則：使用繁體中文；蘇格拉底式引導，絕不直接說出答案或規律本身；每次回覆不超過兩句話；以學生目前的處境為素材提問。目前學生狀態：'+stateBrief(),
         messages:aiHistory.slice(-10)
       })
     });
@@ -1690,7 +1835,7 @@ function endingRecap(){
   openModal(`<h2>回顧・意外、規律、應用</h2><div class="sub">你這一趟走過的路</div>
   <p><b>意外</b>──在厄斯特的講堂，你做了 ${logs.l1.length} 筆實驗紀錄，用自己的話寫下規律，並通過了新擺位的預測檢驗。</p>
   <p><b>規律</b>──進場前你預測磁針偏向「${poe?poe.ans:'—'}」${poe?(poe.ans==='西'?'，而且進場前就答對了':'，之後你站到導線下方，親眼看到了答案：西'):''}。你在磁場裡走了約 ${timeL2} 秒，親腳畫出磁力線、走進螺線管，最後通過安培的三連問。</p>
-  <p><b>應用</b>──起重機你嘗試了 ${logs.crane.length} 次，最大磁力約 ${bestF.toFixed(1)} kg，電力剩餘 ${L3.budget}／100；馬達組裝 ${logs.motor.length} 次，最後讓兩百年前的第一顆馬達重新轉了起來。</p>
+  <p><b>應用</b>──起重機你嘗試了 ${logs.crane.length} 次，最大磁力約 ${bestF.toFixed(1)} kg，電力剩餘 ${L3.budget}／100；馬達組裝 ${logs.motor.length} 次，最後讓兩百年前的第一顆馬達重新轉了起來；在 1831 年的線圈前，你看見「磁變電」只發生在磁場改變的那一刻。</p>
   <p style="border-top:1px solid var(--line);padding-top:12px">兩百年前的一堂課上，這根針動了一下。<br><b>現在，你知道它為什麼動了——而且是站在磁場裡面知道的。</b></p>
   <p class="sub">別忘了牆上的最後一問：如果地核的電流停了，你手上的羅盤會怎樣？（可以告訴 AI 老師你的想法）</p>
   <div class="foot"><button id="endOk">關閉</button></div>`);
@@ -1908,12 +2053,27 @@ function animate(){
 
   /* 工坊面板：靠近哪一側儀器就顯示哪一側 */
   if(zone===3){
-    const want=(px<L3.cx)?'a':'b';
+    const want=(pz<L3.cz-4&&Math.abs(px-L3.cx)<5.5)?'c':(px<L3.cx)?'a':'b';
     if(want!==_p3Shown){
       _p3Shown=want;
       document.getElementById('p3a').style.display=want==='a'?'block':'none';
       document.getElementById('p3b').style.display=want==='b'?'block':'none';
+      document.getElementById('p3c').style.display=want==='c'?'block':'none';
     }
+  }
+
+  /* 1831 電磁感應：磁棒依滑桿移動，感應電流 ∝ −(磁通量變化率) */
+  if(zone===3){
+    const I=L3.ind, prev=I.pos, step=2.2*dt;
+    I.pos+=Math.max(-step,Math.min(step,I.target-I.pos));
+    const rate=(I.pos-prev)/Math.max(dt,1e-3);
+    const flux=x=>1/(1+Math.exp(-(x-0.6)*9));      // 通過線圈的磁力線數目（相對值）
+    const cur=-I.pol*(flux(I.pos)-flux(prev))/Math.max(dt,1e-3)*0.35;
+    I.galv+=(Math.max(-1,Math.min(1,cur))-I.galv)*Math.min(1,dt*10);
+    L3.needle.rotation.z=-I.galv*1.0;
+    L3.indMag.position.x=L3.cx-3.2+I.pos*3.2;
+    L3.indCoil.children.forEach(t=>t.material.emissive.setRGB(Math.abs(I.galv)*0.6,Math.abs(I.galv)*0.3,0));
+    indObserve(cur,rate,dt);
   }
 
   /* 馬達旋轉 */
