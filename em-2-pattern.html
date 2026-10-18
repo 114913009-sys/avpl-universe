@@ -1361,6 +1361,7 @@ function openLenzQuiz(){
       <button data-a="0">S 極——把磁棒吸進來，幫它一把</button>
       <button data-a="1">N 極——把磁棒推回去，抵抗它靠近</button>
       <button data-a="2">不會有磁極——感應電流不會產生磁場</button>
+      <button data-a="3">N 極和 S 極快速輪流交替</button>
     </div>`);
   md.querySelectorAll('.opts button').forEach(b=>b.onclick=()=>{
     closeModal();
@@ -1563,16 +1564,13 @@ function l1Record(){
 }
 document.getElementById('b1test').addEventListener('click',()=>{
   const combo={pos:Math.random()<0.5?'上方':'下方', dir:Math.random()<0.5?'北':'南'};
-  openModal(`<h2>檢驗你的規律</h2><div class="sub">先寫，再猜，然後才通電</div>
-    <p>用你自己的話，把你找到的規律寫下來：</p>
-    <textarea id="ruleTxt" placeholder="例如：當電流朝……而導線在……時，磁針會……"></textarea>
-    <p style="margin-top:12px">新的擺位：導線在磁針<b>${combo.pos}</b>，電流向<b>${combo.dir}</b>。<br>通電後，磁針會往哪偏？</p>
-    <div class="opts">
+  openModal(`<h2>檢驗你的規律</h2><div class="sub">先預測，然後才通電</div>
+    <p>用你從紀錄裡找到的規律來預測。<br>新的擺位：導線在磁針<b>${combo.pos}</b>，電流向<b>${combo.dir}</b>。<br>通電後，磁針會——</p>
+    <div class="opts" style="flex-direction:column">
       <button id="gE">東偏</button><button id="gW">西偏</button>
+      <button id="gN">不偏轉</button><button id="gS">來回擺動、停不下來</button>
     </div>`);
   const judge=(guess)=>{
-    const rule=(document.getElementById('ruleTxt').value||'').trim();
-    if(rule.length<6){toast('先把規律寫下來（至少一句話）'); return;}
     L1.wireAbove=(combo.pos==='上方'); L1.dirNorth=(combo.dir==='北'); L1.power=true;
     logs.l1.push({pos:combo.pos,dir:combo.dir,defl:l1Deflection()});
     l1Apply(); closeModal();
@@ -1590,6 +1588,8 @@ document.getElementById('b1test').addEventListener('click',()=>{
   };
   document.getElementById('gE').onclick=()=>judge('東偏');
   document.getElementById('gW').onclick=()=>judge('西偏');
+  document.getElementById('gN').onclick=()=>judge('不偏轉');
+  document.getElementById('gS').onclick=()=>judge('來回擺動');
 });
 
 /* ================= 關卡二邏輯 ================= */
@@ -1599,14 +1599,9 @@ function openPOE(){
     <div class="opts">
       <button data-a="北">北</button><button data-a="南">南</button>
       <button data-a="東">東</button><button data-a="西">西</button>
-    </div>
-    <p class="sub">寫一句你的理由（至少 10 字）：</p>
-    <textarea id="poeWhy"></textarea>
-    <div class="foot"></div>`);
+    </div>`);
   md.querySelectorAll('.opts button').forEach(b=>b.onclick=()=>{
-    const why=(document.getElementById('poeWhy').value||'').trim();
-    if(why.length<10){toast('理由至少 10 個字——把直覺說出口');return;}
-    logs.l2.poe={ans:b.dataset.a, why};
+    logs.l2.poe={ans:b.dataset.a, why:''};
     closeModal();
     // 正解：西（B = 北 × 下 = 西）
     if(b.dataset.a==='西'){
