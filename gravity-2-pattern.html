@@ -214,6 +214,7 @@
     <div class="tk" data-tk="2-0"><i class="lamp"></i><span>① 找出太陽的位置（走近模型按 E）</span></div>
     <div class="tk" data-tk="2-1"><i class="lamp"></i><span>② 到近日點觀察台，等行星通過</span></div>
     <div class="tk" data-tk="2-2"><i class="lamp"></i><span>③ 改變離心率兩次，看規律變不變</span></div>
+    <div class="tk" data-tk="2-3"><i class="lamp"></i><span>④ 到「克卜勒的計算台」完成四道計算題</span></div>
   </div>
 </div>
 
@@ -940,7 +941,7 @@ let zone=0, uiOpen=false;
 window.__BT_state=()=>({zone,uiOpen});
 const logs={
   collected:[], expTries:0, pred:null,
-  poe:null, l2tasks:[false,false,false], eChanges:0,
+  poe:null, l2tasks:[false,false,false,false], calcTries:[], eChanges:0,
   launches:[], escapes:0, crashes:0, orbits:[], fuel:100,
   t3tasks:[false,false,false]
 };
@@ -1030,7 +1031,7 @@ const L2={a:4.5,e:0.5,nu:0,h:0,orbitG:null,orbitLine:null,planet:null,sun:null,
     '','為了 8 角分，他丟掉了兩千年的圓，',
     '換成一個沒有人喜歡的形狀：橢圓。'],'#ffd27a'),400,2.3,-12.8,0,4.2,3.1);
   const g=new THREE.Group();
-  g.position.set(400,2.7,0); g.rotation.x=0.22;
+  g.position.set(400,5.2,-3); g.rotation.x=Math.PI/2;
   scene.add(g); L2.orbitG=g;
   // 太陽（焦點）、中心標記
   L2.sun=new THREE.Mesh(new THREE.SphereGeometry(0.42,18,14),
@@ -1044,7 +1045,23 @@ const L2={a:4.5,e:0.5,nu:0,h:0,orbitG:null,orbitLine:null,planet:null,sun:null,
   L2.periMark=new THREE.Mesh(new THREE.CylinderGeometry(0.5,0.6,0.18,16),
     new THREE.MeshBasicMaterial({color:0x8ef0b0,transparent:true,opacity:0.6}));
   scene.add(L2.periMark);
-  labelSprite('近日點觀察台',404.5,1.4,2.6,'#8ef0b0',2.2);
+  labelSprite('近日點觀察台',404.5,1.0,0.6,'#8ef0b0',2.2);
+  L2.lblP=labelSprite('近日點 r1',404.5,6.0,-2.9,'#8ef0b0',1.9);
+  L2.lblA=labelSprite('遠日點 r2',395.5,6.0,-2.9,'#ffd27a',1.9);
+  // 計算台
+  const desk=new THREE.Mesh(new THREE.BoxGeometry(1.8,0.9,1.0),new THREE.MeshStandardMaterial({color:0x4a3a28,roughness:0.85}));
+  desk.position.set(394.5,0.45,5); scene.add(desk);
+  labelSprite('克卜勒的計算台',394.5,2.2,5,'#ffd27a',2.4);
+  board(makeBoardTexture('近日點與遠日點',[
+    '近日距 r1：行星離太陽最近的距離',
+    '遠日距 r2：行星離太陽最遠的距離',
+    '',
+    '第二定律（等面積），在近日點與遠日點：',
+    '　　r1 · v1 ＝ r2 · v2',
+    '　（只在這兩點成立：速度垂直於連線）',
+    '',
+    '平均軌道半徑 R ＝ (r1 ＋ r2) ／ 2（半長軸）',
+    '第三定律 T²＝R³ 用的就是這個 R'],'#ffd27a'),387.2,2.4,5,Math.PI/2,4.2,3.1);
   rebuildOrbit();
   L2.ready=true;
 })();
@@ -1068,7 +1085,8 @@ function rebuildOrbit(){
   // 清空扇形
   L2.sectors.forEach(s=>g.remove(s)); L2.sectors=[]; L2.secPts=[]; L2.secT=0;
   // 近日點觀察台世界位置：local (a,0,0)
-  L2.periMark.position.set(400+a,0.1,0);
+  L2.periMark.position.set(400+a,0.1,-1);
+  if(L2.lblP){L2.lblP.position.set(400+a,5.2+0.75,-2.9);L2.lblA.position.set(400-a,5.2+0.75,-2.9);}
 }
 function planetLocal(nu){
   const a=L2.a,e=L2.e,c=a*e;
@@ -1254,6 +1272,7 @@ function buildL4Boards(){
     `離心率調整：${logs.eChanges} 次`,
     logs.l2tasks[0]?'✓ 指出太陽在焦點':'－ 未完成太陽位置',
     logs.l2tasks[1]?'✓ 近日點觀察完成':'－ 未到近日點觀察台',
+    logs.l2tasks[3]?'✓ 計算台：r1v1＝r2v2、R＝(r1+r2)/2':'－ 未完成計算台',
     '','八角分的誤差，換來了橢圓。'],'#8fb8ff',true),800,2.2,-8.8,0));
   // 遷移題
   L4.boards.push(board(makeBoardTexture('最後一問（不計分）',[
@@ -1343,6 +1362,50 @@ function sunQuiz(){
     else toast('再看一次模型：灰色小點才是中心，太陽在它旁邊那顆亮的');
   });
 }
+const CALC_QS=[
+  {h:'第二定律・r1v1＝r2v2',q:'某彗星在<b>近日點</b>距太陽 r1＝1 AU，速率 v1＝40 km/s；<br><b>遠日點</b>距太陽 r2＝4 AU。遠日點速率 v2 約為？',
+   o:['160 km/s','40 km/s','10 km/s','2.5 km/s'],ans:2,
+   hint:['距離變遠，速率應該變大還是變小？看看模型。','連線變長了，速率不可能不變——掃面積要相等。','','r1v1＝r2v2 是一次方的反比，不是平方：1×40＝4×v2。'],
+   ok:'✓ 1×40＝4×v2，v2＝10 km/s——距離變 4 倍，速率變 1/4'},
+  {h:'第二定律・看模型',q:'若行星的遠日距是近日距的 <b>3 倍</b>（r2＝3r1），<br>近日點速率是遠日點速率的幾倍？',
+   o:['1/3 倍','3 倍','9 倍','一樣快'],ans:1,
+   hint:['近日點比較近，應該比較快還是比較慢？','','r1v1＝r2v2 是一次方的關係，不是平方。','回到模型看速率條：近日點和遠日點一樣嗎？'],
+   ok:'✓ v1／v2＝r2／r1＝3。把模型的離心率調到 0.5，就是這個比例'},
+  {h:'平均軌道半徑',q:'哈雷彗星的近日距 r1≈0.6 AU，遠日距 r2≈35 AU。<br>它的平均軌道半徑 R＝(r1＋r2)／2 約為？',
+   o:['約 4.6 AU','約 17.2 AU','約 17.8 AU','約 35.6 AU'],ans:2,
+   hint:['4.6 是 √(r1×r2)——平均軌道半徑用的是相加除以 2。','17.2 是 (35−0.6)／2——要相加，不是相減。','','35.6 只是 r1＋r2，還要除以 2。'],
+   ok:'✓ R＝(0.6＋35)／2≈17.8 AU——也就是橢圓的半長軸'},
+  {h:'接回第三定律',q:'用你算出的 R≈17.8 AU 和第一關的 T²＝R³，<br>哈雷彗星的週期約為？',
+   o:['約 18 年','約 75 年','約 317 年','約 5640 年'],ans:1,
+   hint:['18 年是把 T 當成和 R 一樣——T∝R 不對。','','317 年是 R²——要用 T²＝R³。','5640 年是 R³——別忘了最後要開根號。'],
+   ok:'✓ T＝√(17.8³)≈75 年——哈雷彗星大約每 76 年回來一次'},
+];
+function calcDesk(){
+  if(logs.l2tasks[3]){toast('計算台已完成——r1v1＝r2v2、R＝(r1＋r2)／2');return;}
+  let i=0;
+  const ask=()=>{
+    const c=CALC_QS[i];
+    openModal(`<h2>${c.h}</h2><div class="sub">克卜勒的計算台・第 ${i+1}／${CALC_QS.length} 題</div>
+      <p>${c.q}</p>
+      <div class="opts" style="flex-direction:column">${c.o.map((t,k)=>`<button data-a="${k}">${t}</button>`).join('')}</div>`);
+    md.querySelectorAll('.opts button').forEach(b=>b.onclick=()=>{
+      const k=+b.dataset.a; logs.calcTries.push({q:i+1,a:c.o[k],ok:k===c.ans});
+      if(k===c.ans){
+        closeModal(); toast(c.ok,true); i++;
+        if(i<CALC_QS.length){ setTimeout(ask,1600); }
+        else{
+          logs.l2tasks[3]=true;
+          aiPush('bot','（克卜勒）近日點快、遠日點慢，快慢剛好和距離成反比；而第三定律裡的 R，其實是近日距和遠日距的平均。');
+          setTimeout(()=>toast('✓ 任務④：計算台完成',true),1200);
+          l2CheckClear();
+        }
+      }else{
+        closeModal(); toast(c.hint[k]||'再想一次',true); setTimeout(ask,1800);
+      }
+    });
+  };
+  ask();
+}
 function l2CheckClear(){
   if(prog.l2) return;
   if(logs.l2tasks.every(Boolean)) setTimeout(openL2Final,1200);
@@ -1389,6 +1452,7 @@ const interactables=[
   {x:0,z:14,r:2.6,zone:0,label:'進入：反思展區',act:()=>prog.l3?goto(4):toast('完成三道關卡後開啟')},
   {x:204.5,z:4.8,r:2.2,zone:1,label:'與第谷交談',act:npcTycho},
   {x:400,z:0,r:3.4,zone:2,label:'回答：太陽在哪裡？',act:sunQuiz},
+  {x:394.5,z:6.4,r:2.0,zone:2,label:'克卜勒的計算台（四道題）',act:calcDesk},
   {x:595,z:5,r:2.2,zone:3,label:'與牛頓交談',act:()=>{
     openModal(`<h2>牛頓</h2><div class="sub">1687・《原理》</div>
     <p>「把砲彈打得夠快，它的墜落就永遠追不上地面的彎曲——<b>它就在墜落中環繞。</b>」</p>
@@ -1527,7 +1591,7 @@ function aiPush(role,text){ BT.onAI(role,text);
 }
 function stateBrief(){
   const zn=['入口大廳','關卡一：第谷觀測台（從行星資料歸納 T²/R³）','關卡二：克卜勒橢圓廳（焦點、等面積、近日點速率）','關卡三：牛頓發射場（牛頓大砲、圓軌道、同步軌道）','反思展區'][zone];
-  return `目前區域：${zn}。已抄錄 ${logs.collected.length} 顆行星，試算 ${logs.expTries} 次。POE 答案：${logs.poe?logs.poe.ans:'未答'}，關卡二任務 ${logs.l2tasks.filter(Boolean).length}/3。發射 ${logs.launches.length} 次（脫離 ${logs.escapes}、墜毀 ${logs.crashes}），燃料 ${logs.fuel}。任務三：${logs.t3tasks.filter(Boolean).length}/3。進度 L1=${prog.l1} L2=${prog.l2} L3=${prog.l3}`;
+  return `目前區域：${zn}。已抄錄 ${logs.collected.length} 顆行星，試算 ${logs.expTries} 次。POE 答案：${logs.poe?logs.poe.ans:'未答'}，關卡二任務 ${logs.l2tasks.filter(Boolean).length}/4（計算台作答 ${logs.calcTries.length} 次）。發射 ${logs.launches.length} 次（脫離 ${logs.escapes}、墜毀 ${logs.crashes}），燃料 ${logs.fuel}。任務三：${logs.t3tasks.filter(Boolean).length}/3。進度 L1=${prog.l1} L2=${prog.l2} L3=${prog.l3}`;
 }
 const fallbackHints={
   0:['三道門依「觀測→規律→原因」的順序走——這也是科學史真實的順序。'],
@@ -1727,7 +1791,7 @@ function animate(){
         secAccum=[secAccum[secAccum.length-1]];
       }
       // 近日點觀察：站在觀察台附近且行星在近日點弧段
-      const dPeri=Math.hypot(px-(400+L2.a),pz-0);
+      const dPeri=Math.hypot(px-(400+L2.a),pz-(-1));
       const nuN=((L2.nu%(Math.PI*2))+Math.PI*2)%(Math.PI*2);
       if(dPeri<3&&(nuN<0.5||nuN>Math.PI*2-0.5)){
         L2.periTimer+=dt;
