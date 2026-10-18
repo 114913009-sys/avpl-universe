@@ -208,7 +208,7 @@
   <div class="records" id="t2task">
     任務：
     <div class="tk" data-tk="2-0"><i class="lamp"></i><span>① 找出太陽的位置（走近模型按 E）</span></div>
-    <div class="tk" data-tk="2-1"><i class="lamp"></i><span>② 到近日點觀察台，等行星通過</span></div>
+    <div class="tk" data-tk="2-1"><i class="lamp"></i><span>② 面向軌道，看行星經過近日點</span></div>
     <div class="tk" data-tk="2-2"><i class="lamp"></i><span>③ 改變離心率兩次，看規律變不變</span></div>
     <div class="tk" data-tk="2-3"><i class="lamp"></i><span>④ 到「克卜勒的計算台」完成四道計算題</span></div>
   </div>
@@ -1037,11 +1037,6 @@ const L2={a:4.5,e:0.5,nu:0,h:0,orbitG:null,orbitLine:null,planet:null,sun:null,
   g.add(cm); L2.centerMark=cm;
   L2.planet=new THREE.Mesh(new THREE.SphereGeometry(0.22,14,12),new THREE.MeshBasicMaterial({color:0x8fb8ff}));
   g.add(L2.planet);
-  // 近日點觀察台（世界座標，稍後由 rebuild 設定）
-  L2.periMark=new THREE.Mesh(new THREE.CylinderGeometry(0.5,0.6,0.18,16),
-    new THREE.MeshBasicMaterial({color:0x8ef0b0,transparent:true,opacity:0.6}));
-  scene.add(L2.periMark);
-  labelSprite('近日點觀察台',404.5,1.0,0.6,'#8ef0b0',2.2);
   L2.lblP=labelSprite('近日點 r1',404.5,6.0,-2.9,'#8ef0b0',1.9);
   L2.lblA=labelSprite('遠日點 r2',395.5,6.0,-2.9,'#ffd27a',1.9);
   // 計算台
@@ -1057,7 +1052,7 @@ const L2={a:4.5,e:0.5,nu:0,h:0,orbitG:null,orbitLine:null,planet:null,sun:null,
     '　（只在這兩點成立：速度垂直於連線）',
     '',
     '平均軌道半徑 R ＝ (r1 ＋ r2) ／ 2（半長軸）',
-    '第三定律 T²＝R³ 用的就是這個 R'],'#ffd27a'),387.2,2.4,5,Math.PI/2,4.2,3.1);
+    '第三定律 T²＝R³ 用的就是這個 R'],'#ffd27a',true),387.2,2.4,5,Math.PI/2,4.2,3.1);
   rebuildOrbit();
   L2.ready=true;
 })();
@@ -1080,8 +1075,6 @@ function rebuildOrbit(){
   L2.h=2*Math.PI*a*b/14;
   // 清空扇形
   L2.sectors.forEach(s=>g.remove(s)); L2.sectors=[]; L2.secPts=[]; L2.secT=0;
-  // 近日點觀察台世界位置：local (a,0,0)
-  L2.periMark.position.set(400+a,0.1,-1);
   if(L2.lblP){L2.lblP.position.set(400+a,5.2+0.75,-2.9);L2.lblA.position.set(400-a,5.2+0.75,-2.9);}
 }
 function planetLocal(nu){
@@ -1267,7 +1260,7 @@ function buildL4Boards(){
     poe?`POE 預測：「${poe.ans}」${poe.ans==='變快'?'（正確）':'（觀察後修正為：變快）'}`:'（未作答）',
     `離心率調整：${logs.eChanges} 次`,
     logs.l2tasks[0]?'✓ 指出太陽在焦點':'－ 未完成太陽位置',
-    logs.l2tasks[1]?'✓ 近日點觀察完成':'－ 未到近日點觀察台',
+    logs.l2tasks[1]?'✓ 近日點觀察完成':'－ 未觀察行星經過近日點',
     logs.l2tasks[3]?'✓ 計算台：r1v1＝r2v2、R＝(r1+r2)/2':'－ 未完成計算台',
     '','八角分的誤差，換來了橢圓。'],'#8fb8ff',true),800,2.2,-8.8,0));
   // 遷移題
@@ -1786,10 +1779,9 @@ function animate(){
         if(L2.sectors.length>10){const old=L2.sectors.shift();L2.orbitG.remove(old);}
         secAccum=[secAccum[secAccum.length-1]];
       }
-      // 近日點觀察：站在觀察台附近且行星在近日點弧段
-      const dPeri=Math.hypot(px-(400+L2.a),pz-(-1));
+      // 近日點觀察：POE 作答後、面向軌道模型，且行星在近日點弧段
       const nuN=((L2.nu%(Math.PI*2))+Math.PI*2)%(Math.PI*2);
-      if(dPeri<3&&(nuN<0.5||nuN>Math.PI*2-0.5)){
+      if(logs.poe&&!uiOpen&&Math.cos(camera.rotation.y)>0.6&&(nuN<0.5||nuN>Math.PI*2-0.5)){
         L2.periTimer+=dt;
         if(L2.periTimer>0.3&&!logs.l2tasks[1]){
           logs.l2tasks[1]=true;
