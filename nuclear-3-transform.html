@@ -1012,6 +1012,22 @@ board=(o=>function(){const m=o.apply(this,arguments);BT.addBoard(m);return m;})(
     '上夸克 +⅔e　下夸克 −⅓e　（按 E 作答）'],'#b0a4ff'),194.3,2.3,11,Math.PI/2,4.4,3.2);
   const chair=new THREE.Mesh(new THREE.BoxGeometry(0.6,1.0,0.6),new THREE.MeshStandardMaterial({color:0x4a3a28,roughness:0.9}));
   chair.position.set(197,0.5,12); scene.add(chair);
+  // 第一站：摩擦力（入口右側）
+  const tbl=new THREE.Mesh(new THREE.BoxGeometry(1.6,0.9,1.2),new THREE.MeshStandardMaterial({color:0x3a3046,roughness:0.9}));
+  tbl.position.set(204.3,0.45,11.4); scene.add(tbl);
+  const blk=new THREE.Mesh(new THREE.BoxGeometry(0.55,0.3,0.38),new THREE.MeshStandardMaterial({color:0x8a5a32,roughness:0.85}));
+  blk.position.set(204.3,1.05,11.4); scene.add(blk); window.__fricBlock=blk;
+  board(makeBoardTexture('第一站・摩擦力從哪裡來？',[
+    '推桌上的木塊，木塊不動——摩擦力擋住了你。',
+    '可是摩擦力是誰施的？',
+    '',
+    '把接觸面放大、再放大：',
+    '看似光滑的表面，其實凹凸不平；',
+    '真正碰在一起的，是兩邊表面的原子。',
+    '',
+    '原子靠近時，彼此的電子互相推擠——',
+    '（走到桌前按 E，一層一層放大看看）'],'#8ef0b0'),205.7,2.6,10.2,-Math.PI/2,4.0,2.95);
+  labelSprite('第一站・摩擦力',204.3,4.3,11.4,'#8ef0b0',2.6);
   labelSprite('尺度 10⁰ m・人間',200,4.4,12,'#b0a4ff',3.2);
   // 縮小通道一：z 8 → 2（收縮環）
   for(let i=0;i<4;i++){
@@ -1547,7 +1563,7 @@ function goto(z){ if(z===0) z=BT.startZone(); BT.onGoto(z);
   const s=spawns[z];
   camera.position.set(s.x,1.7,s.z);
   camera.rotation.set(0,0,0);
-  if(z===1) toast('往前走——這座走廊會帶你縮小十四個數量級',true);
+  if(z===1) toast('先到右手邊推推看木塊——從摩擦力開始，這座走廊會帶你縮小十四個數量級',true);
   if(z===3){decayUI();}
   if(z===4){ buildL4Boards(); BT.filterL4(L4.boards,scene); }
   setZoneUI();
@@ -1621,7 +1637,56 @@ function orderQuiz(){
     else toast('再看一次左牆的時間軸：哪一個帶電、哪一個不帶電？不帶電的最難被偵測到',true);
   });
 }
+function frictionStation(){
+  const svgBox=(inner)=>`<svg viewBox="0 0 320 120" style="width:100%;max-width:420px;display:block;margin:8px auto;background:#0c0a20;border:1px solid #3a3a68;border-radius:4px">${inner}</svg>`;
+  const steps=[
+    {t:'尺度 10⁰ m・你的手',s:'推一下',p:'你用力推桌上的木塊，木塊<b>紋風不動</b>。<br>有一個力抵住了你的推力——<b>靜摩擦力</b>。<br>可是桌面沒有手，它是怎麼「推回來」的？',
+     g:svgBox('<rect x="40" y="78" width="240" height="14" fill="#3a3046"/><rect x="130" y="50" width="70" height="28" fill="#8a5a32"/><line x1="70" y1="64" x2="128" y2="64" stroke="#ffcf7a" stroke-width="3"/><polygon points="128,58 128,70 138,64" fill="#ffcf7a"/><line x1="200" y1="82" x2="250" y2="82" stroke="#ff6a5c" stroke-width="3"/><polygon points="250,76 250,88 260,82" fill="#ff6a5c"/><text x="60" y="44" fill="#ffcf7a" font-size="13">你的推力</text><text x="205" y="108" fill="#ff6a5c" font-size="13">摩擦力（哪裡來？）</text>')},
+    {t:'放大一萬倍・10⁻⁴ m',s:'表面其實坑坑洞洞',p:'看起來光滑的木頭和桌面，放大後都是<b>山峰和山谷</b>。<br>兩個表面真正碰在一起的，只有少數幾個突起的點。',
+     g:svgBox('<path d="M10,48 L40,40 L60,58 L90,36 L120,60 L150,42 L185,62 L215,38 L245,58 L275,44 L310,56 L310,10 L10,10 Z" fill="#8a5a32"/><path d="M10,70 L45,60 L70,74 L95,58 L130,76 L155,62 L190,64 L220,60 L250,76 L280,62 L310,72 L310,112 L10,112 Z" fill="#3a3046"/><circle cx="92" cy="47" r="7" fill="none" stroke="#8ef0b0" stroke-width="2"/><circle cx="215" cy="49" r="7" fill="none" stroke="#8ef0b0" stroke-width="2"/><text x="112" y="100" fill="#8ef0b0" font-size="13">真正接觸的地方</text>')},
+    {t:'再放大十萬倍・10⁻⁹ m',s:'接觸點上是原子',p:'在接觸點上，上下兩層<b>原子</b>靠得非常近。<br>每顆原子外圍都是一層帶<b>負電的電子雲</b>，核在中心帶正電。<br>兩邊的電子雲一擠，就互相<b>排斥</b>；稍微錯開，又會<b>吸引</b>——',
+     g:svgBox([0,1,2,3,4].map(i=>`<circle cx="${50+i*55}" cy="36" r="22" fill="#8fa0ff" fill-opacity="0.22" stroke="#8fa0ff"/><circle cx="${50+i*55}" cy="36" r="3" fill="#ffcf7a"/><circle cx="${77+i*55}" cy="84" r="22" fill="#8fa0ff" fill-opacity="0.22" stroke="#8fa0ff"/><circle cx="${77+i*55}" cy="84" r="3" fill="#ffcf7a"/>`).join('')+'<text x="8" y="116" fill="#b0a4ff" font-size="12">上排：木塊　下排：桌面　黃點＝原子核　藍雲＝電子</text>')},
+  ];
+  let i=0;
+  const show=()=>{
+    if(i<steps.length){
+      const st=steps[i];
+      openModal(`<h2>${st.s}</h2><div class="sub">${st.t}</div>${st.g}<p>${st.p}</p>
+        <div class="foot"><button id="frNext">${i<steps.length-1?'再放大 ▸':'所以——'}</button></div>`);
+      document.getElementById('frNext').onclick=()=>{i++;show();};
+      return;
+    }
+    openModal(`<h2>摩擦力的真面目</h2><div class="sub">四選一</div>
+      <p>原子之間這種推擠和吸引，來自電子和原子核的<b>電荷</b>。<br>所以，摩擦力本質上是哪一種基本作用力？</p>
+      <div class="opts" style="flex-direction:column">
+        <button data-a="0">重力</button>
+        <button data-a="1">電磁力</button>
+        <button data-a="2">強力</button>
+        <button data-a="3">弱力</button>
+      </div>`);
+    md.querySelectorAll('.opts button').forEach(b=>b.onclick=()=>{
+      (logs.frictionTries=logs.frictionTries||[]).push(b.textContent.trim());
+      if(b.dataset.a==='1'){
+        logs.friction=true;
+        openModal(`<h2>✓ 電磁力</h2><div class="sub">第一站完成</div>
+          <p>不只摩擦力——<b>推力、拉力、正向力、彈力、繩子的張力</b>，日常所有「碰到才有」的接觸力，追到原子裡，都是原子之間的<b>電磁力</b>。</p>
+          <p>剛才我們放大到 10⁻⁹ 公尺，看見原子外圍的電子雲。<br>那電子雲的<b>裡面</b>呢？</p>
+          <p style="color:var(--gold)">往前走，穿過收縮環——再縮小，走進一顆原子的內部。</p>
+          <div class="foot"><button>出發</button></div>`);
+        md.querySelector('.foot button').onclick=closeModal;
+      }else{
+        closeModal();
+        const hint={'0':'重力確實存在，但兩顆原子之間的重力小到量不出來，擋不住你的手。原子之間帶的是什麼？',
+                    '2':'強力只在原子核裡面、10⁻¹⁵ 公尺內才有作用；兩層原子之間隔著電子雲，遠超過它的範圍。',
+                    '3':'弱力負責讓粒子「變身」（衰變），不會產生推擠。想想電子帶的是什麼？'}[b.dataset.a];
+        toast(hint,true); setTimeout(show,1800);
+      }
+    });
+  };
+  show();
+}
 function riddleQuiz(){
+  if(!logs.friction){toast('先回入口右側的「第一站・摩擦力」——從日常的力開始，一路追進原子');return;}
   if(!logs.couRead){toast('先去讀庫侖力表——沒有數字，謎題不成立');return;}
   openModal(`<h2>謎題成立</h2><div class="sub">說出它，你就通關了</div>
     <p>電磁力說這顆核該炸開，但它沒有。<br>唯一合理的結論是——</p>
@@ -1652,6 +1717,7 @@ const interactables=[
   {x:200,z:-51,r:2.2,zone:1,label:'讀庫侖力表',act:coulombRead},
   {x:200,z:-59.5,r:2.2,zone:1,label:'回答謎題',act:riddleQuiz},
   {x:195.8,z:11,r:2.2,zone:1,label:'回答：誰先被發現？',act:orderQuiz},
+  {x:203.4,z:11.2,r:2.0,zone:1,label:'第一站：推推看木塊（摩擦力）',act:frictionStation},
   {x:406,z:-5,r:2.2,zone:2,label:'與湯川交談',act:()=>{
     openModal(`<h2>湯川秀樹</h2><div class="sub">1935・大阪</div>
     <p>「大家都在找那種力，我只是問了一個不一樣的問題：<b>如果它只能傳這麼短的距離，那是為什麼？</b>」</p>
@@ -1870,7 +1936,7 @@ function animate(){
     if(!logs.walked&&Math.hypot(px-200,z-(-34))<1.8){
       logs.walked=true;
       toast('你剛剛穿過了一顆原子。你撞到了什麼嗎？',true);
-      aiPush('bot','（AI 老師）從雲的邊緣走到這裡，你撞到了什麼？——這片空曠不是圖畫留白，是原子真實的樣子。腳邊那粒微光，就是原子核。');
+      aiPush('bot','（AI 老師）從雲的邊緣走到這裡，你撞到了什麼？——這片空曠不是圖畫留白，是原子真實的樣子。腳邊那粒微光，就是原子核。第一站的摩擦力，就發生在兩塊表面這種電子雲之間。');
     }
     // POE 閘門：跨過通道二
     if(!poe1Fired&&z<-42){poe1Fired=true;openPOE1();}
@@ -1989,7 +2055,7 @@ function animate(){
 document.getElementById('startBtn').addEventListener('click',()=>{
   document.getElementById('intro').classList.add('hide');
   goto(0);
-  setTimeout(()=>toast('「這裡面有兩顆質子。同性相斥——它們為什麼還抱在一起？」',true),700);
+  setTimeout(()=>toast(zone===1?'先到右手邊推推看木塊——它為什麼推不動？從摩擦力開始，一路縮小到原子核':'「這裡面有兩顆質子。同性相斥——它們為什麼還抱在一起？」',true),700);
   if(!isTouch) canvas.requestPointerLock();
 });
 addEventListener('resize',()=>{
