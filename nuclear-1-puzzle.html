@@ -1215,6 +1215,7 @@ function openL2Quiz(){
       <button data-a="0">中子比較重，把核壓穩了</button>
       <button data-a="1">強力短程只黏得住鄰居，庫侖斥力卻是全場都算——核越大，斥力越佔便宜，得靠中子多添膠水</button>
       <button data-a="2">大核的質子會自己變少</button>
+      <button data-a="3">中子帶負電，可以抵消質子的正電</button>
     </div>`);
   md.querySelectorAll('.opts button').forEach(b=>b.onclick=()=>{
     closeModal();
@@ -1335,6 +1336,7 @@ document.getElementById('betaBtn').addEventListener('click',()=>{
         <button data-a="0">本來就住在核裡，被踢出來</button>
         <button data-a="1">衰變當下才產生——之前不存在</button>
         <button data-a="2">從外面飛進來又彈出去</button>
+        <button data-a="3">一顆質子分裂後留下來的碎片</button>
       </div>`);
       md.querySelectorAll('.opts button').forEach(b=>b.onclick=()=>{
         closeModal();
@@ -1367,15 +1369,14 @@ document.getElementById('collideBtn').addEventListener('click',()=>{
 function openSunPOE(){
   openModal(`<h2>先預測</h2><div class="sub">太陽核心・約一千五百萬度</div>
     <p>兩顆質子以極高速度撞在一起。<br>它們會黏住嗎？</p>
-    <div class="opts">
-      <button data-a="會">會黏住</button><button data-a="不會">不會，彈開</button>
-    </div>
-    <p class="sub">寫一句理由（至少 8 字）：</p>
-    <textarea id="sunWhy"></textarea>`);
+    <div class="opts" style="flex-direction:column">
+      <button data-a="黏住">會黏住，變成穩定的雙質子</button>
+      <button data-a="彈開">不會，撞完就彈開</button>
+      <button data-a="氦-4">會直接合成一顆氦-4</button>
+      <button data-a="中子">兩顆都會變成中子</button>
+    </div>`);
   md.querySelectorAll('.opts button').forEach(b=>b.onclick=()=>{
-    const why=(document.getElementById('sunWhy').value||'').trim();
-    if(why.length<8){toast('理由至少 8 個字');return;}
-    logs.sunPoe={ans:b.dataset.a,why};
+    logs.sunPoe={ans:b.dataset.a,why:''};
     closeModal();
     toast('預測記下了——按「讓兩顆質子對撞」親眼驗證');
   });
@@ -1413,6 +1414,7 @@ function openSunQuiz(){
       <button data-a="0">照常燃燒，只是暗一點</button>
       <button data-a="1">根本點不著——質子永遠變不成中子，融合的第一步就走不了</button>
       <button data-a="2">會燒得更旺</button>
+      <button data-a="3">改由重力直接把質子壓成氦，照常發光</button>
     </div>`);
   md.querySelectorAll('.opts button').forEach(b=>b.onclick=()=>{
     closeModal();
@@ -1494,7 +1496,7 @@ function buildL4Boards(){
   L4.boards.push(board(makeBoardTexture('變身・你的紀錄',[
     `對撞失敗 ${logs.collideFails} 次${logs.sunLit?'，開啟弱力後點亮太陽':''}`,
     `β⁻ 衰變 ${logs.decayPath.length} 步走回穩定谷`,
-    logs.sunPoe?`太陽 POE 預測：「${logs.sunPoe.ans}黏住」`:'',
+    logs.sunPoe?`太陽 POE 預測：「${logs.sunPoe.ans}」`:'',
     '','弱力每 10⁹ 年才讓一對質子成功一次——',
     '慢，就是太陽壽命的秘密。'],'#b0a4ff'),800,2.2,-8.8,0));
   // 遷移題
@@ -1585,13 +1587,10 @@ function openPOE1(){
       <button data-a="炸開">互相排斥，瞬間炸開</button>
       <button data-a="黏住">不知為何黏在一起</button>
       <button data-a="繞轉">互相繞著轉，像行星</button>
-    </div>
-    <p class="sub">寫一句理由（至少 8 字）：</p>
-    <textarea id="poe1Why"></textarea>`);
+      <button data-a="分開">慢慢分開，停在一段距離外</button>
+    </div>`);
   md.querySelectorAll('.opts button').forEach(b=>b.onclick=()=>{
-    const why=(document.getElementById('poe1Why').value||'').trim();
-    if(why.length<8){toast('理由至少 8 個字');return;}
-    logs.poe1={ans:b.dataset.a,why};
+    logs.poe1={ans:b.dataset.a,why:''};
     closeModal();
     if(b.dataset.a==='繞轉')
       aiPush('bot','（AI 老師）繞著轉需要吸引力。兩顆正電荷之間，你找得到吸引力嗎？先進去看看再說。');
@@ -1630,6 +1629,7 @@ function riddleQuiz(){
       <button data-a="0">庫侖定律在這麼小的尺度失效了</button>
       <button data-a="1">必定存在一種更強的吸引力，在極短距離內勝過斥力</button>
       <button data-a="2">質子靠得夠近時其實不帶電</button>
+      <button data-a="3">原子核外的電子把它們吸在一起</button>
     </div>`);
   md.querySelectorAll('.opts button').forEach(b=>b.onclick=()=>{
     closeModal();
