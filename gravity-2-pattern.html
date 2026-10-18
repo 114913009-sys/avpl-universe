@@ -1194,6 +1194,7 @@ function openGeoQuiz(){
       <button data-a="0">因為那個高度的引力剛好消失</button>
       <button data-a="1">因為圓軌道的週期只由半徑決定——要和地球自轉同步，就只有一個半徑</button>
       <button data-a="2">因為再高就會被大氣層拖慢</button>
+      <button data-a="3">因為只有那個高度的衛星不受地球自轉影響</button>
     </div>`);
   md.querySelectorAll('.opts button').forEach(b=>b.onclick=()=>{
     closeModal();
@@ -1334,6 +1335,7 @@ function sunQuiz(){
       <button data-a="0">橢圓的中心</button>
       <button data-a="1">橢圓的其中一個焦點</button>
       <button data-a="2">橢圓的邊上</button>
+      <button data-a="3">軌道外面、離軌道最遠的地方</button>
     </div>`);
   md.querySelectorAll('.opts button').forEach(b=>b.onclick=()=>{
     closeModal();
@@ -1353,6 +1355,7 @@ function openL2Final(){
       <button data-a="0">靠近太陽時被高溫推了一把</button>
       <button data-a="1">連線變短了——要在相同時間掃過相同面積，就得跑得更快</button>
       <button data-a="2">純屬巧合，每顆行星不一樣</button>
+      <button data-a="3">靠近太陽時阻力變小，所以跑得比較快</button>
     </div>`);
   md.querySelectorAll('.opts button').forEach(b=>b.onclick=()=>{
     closeModal();
@@ -1446,12 +1449,15 @@ document.getElementById('t1calc').addEventListener('click',()=>{
 });
 document.getElementById('t1pred').addEventListener('click',()=>{
   openModal(`<h2>預測一顆新行星</h2><div class="sub">規律要能預測未知，才算規律</div>
-    <p>天王星的平均軌道半徑 R ＝ <b>19.2 AU</b>。<br>用你找到的規律，算出它的公轉週期：</p>
-    <input type="number" id="predIn" placeholder="週期（年）" step="0.1">
-    <div class="foot"><button id="predGo">送出預測</button></div>`);
-  document.getElementById('predGo').onclick=()=>{
-    const v=+document.getElementById('predIn').value;
-    if(!v){toast('先輸入一個數字');return;}
+    <p>天王星的平均軌道半徑 R ＝ <b>19.2 AU</b>。<br>用你找到的規律，它的公轉週期最接近——</p>
+    <div class="opts" style="flex-direction:column">
+      <button data-a="19">約 19 年</button>
+      <button data-a="84">約 84 年</button>
+      <button data-a="369">約 369 年</button>
+      <button data-a="7078">約 7078 年</button>
+    </div>`);
+  md.querySelectorAll('.opts button').forEach(b=>b.onclick=()=>{
+    const v=+b.dataset.a;
     const truth=Math.sqrt(Math.pow(19.2,3)); // ≈84.1
     closeModal();
     if(Math.abs(v-truth)/truth<0.08){
@@ -1460,24 +1466,23 @@ document.getElementById('t1pred').addEventListener('click',()=>{
       toast(`✓ 實際約 ${truth.toFixed(1)} 年——你的規律預測了一顆你沒看過的行星`,true);
       aiPush('bot','（第谷）我留下了資料，你找到了規律。但規律不等於原因——去「規律」那道門，親眼看看軌道長什麼樣子。');
     }else{
-      toast(`偏差太大（實際約 ${truth.toFixed(1)} 年）。檢查：T² = R³，所以 T = √(R³)`,true);
+      toast('不對喔。回到試算器看看：T 和 R 的哪一種次方組合對每顆行星都一樣？再用它算一次',true);
     }
-  };
+  });
 });
 
 /* ================= 關卡二：POE 與離心率 ================= */
 function openPOE(){
   openModal(`<h2>先預測，再觀察</h2><div class="sub">POE・預測—觀察—解釋</div>
     <p>行星從<b>遠日點</b>（離太陽最遠）走到<b>近日點</b>（最近），<br>它的速率會——</p>
-    <div class="opts">
-      <button data-a="變快">變快</button><button data-a="變慢">變慢</button><button data-a="不變">不變</button>
-    </div>
-    <p class="sub">寫一句你的理由（至少 10 字）：</p>
-    <textarea id="poeWhy"></textarea>`);
+    <div class="opts" style="flex-direction:column">
+      <button data-a="變快">變快</button>
+      <button data-a="變慢">變慢</button>
+      <button data-a="不變">不變</button>
+      <button data-a="先變快再變慢">先變快、再變慢</button>
+    </div>`);
   md.querySelectorAll('.opts button').forEach(b=>b.onclick=()=>{
-    const why=(document.getElementById('poeWhy').value||'').trim();
-    if(why.length<10){toast('理由至少 10 個字——把直覺說出口');return;}
-    logs.poe={ans:b.dataset.a,why};
+    logs.poe={ans:b.dataset.a,why:''};
     closeModal();
     toast('預測記下了。看著模型——特別注意它經過太陽附近的那一段',true);
     if(b.dataset.a!=='變快')
